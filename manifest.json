@@ -1,0 +1,15 @@
+{
+	"name": "Stream Sync",
+	"version": "0.1",
+	"description": "Sync timing of a streaming simultaneously viewed by host and clients.",
+	"permissions": ["storage", "activeTab", "declarativeContent", "notifications"],
+	"background": {
+		"page": "background.html",
+		"persistent": true
+	},
+	"page_action": {
+		"default_popup": "popup.html"
+	},
+	"content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com; object-src 'self'",
+	"manifest_version": 2
+}
