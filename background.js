@@ -71,11 +71,6 @@ chrome.runtime.onInstalled.addListener(function() {
 				chrome.storage.local.set({'currentTime': msg.data}, undefined);
 			}
 		}
-		if(msg.type == 'FROM_SW') {
-			if(msg.command == 'message') {
-				console.log('received message from firebase')
-			}
-		}
 	})
 });
 
