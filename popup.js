@@ -19,6 +19,21 @@ chrome.runtime.onMessage.addListener(function(msg) {
 			document.getElementById('currentTime').textContent = msg.data;
 		}
 	}
+	if(msg.type == 'FROM_BG') {
+		console.log('from background: ', msg.command)
+		switch(msg.command) {
+			case 'roomInfo':
+				// hoge
+				console.log('room is open: ', msg.data.roomID);
+				document.getElementById('log').textContent = 'room ID: ' + msg.data.roomID;
+				break;
+			case 'connectionClosed':
+				// hoge
+				console.log('connection is closed');
+				document.getElementById('log').textContent = 'connection is closed';
+				break;
+		}
+	}
 })
 
 
