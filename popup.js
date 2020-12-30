@@ -97,4 +97,16 @@ getCTButton.onclick = elem => {
 	})
 }
 
+document.getElementById('openRoom').onclick = elem => {
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'openRoom',
+	}, undefined);
+}
 
+document.getElementById('closeRoom').onclick = elem => {
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'closeRoom',
+	})
+}
