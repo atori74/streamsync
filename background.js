@@ -1,4 +1,8 @@
 let isScanning = false;
+let isHost = false;
+let conn;
+
+const SERVER_HOST = 'localhost:8889'
 
 const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
@@ -63,6 +67,46 @@ chrome.runtime.onInstalled.addListener(function() {
 					scanCurrentTime(msg.data.tabId);
 					console.log('scan toggled on');
 				}
+			}
+			if(msg.command == 'openRoom') {
+				// room is already exists?
+				if(isHost) {
+					console.log('now already Host');
+					return;
+				}
+				
+				// send openRoom command to server
+				if(window['WebSocket']) {
+					conn = new WebSocket('ws://' + SERVER_HOST + '/new');
+					isHost = true;
+					conn.onclose = () => {
+						console.log('connection closed');
+						isHost = false;
+						closeConnection();
+					};
+					conn.onmessage = (evt) => {
+						console.log('received ws frame');
+						let messages = evt.data.split('\n');
+						for(let i = 0; i < messages.length; i++) {
+							let json = JSON.parse(messages[i]);
+							handleFrame(json);
+						}
+					};
+				} else {
+					console.log('Your browser does not support WebSockets.');
+				}
+			}
+			if(msg.command == 'closeRoom') {
+				if(conn.readyState != WebSocket.CLOSED) {
+					conn.close(1000);
+					isHost = true;
+				}
+			}
+			if(msg.command == 'joinRoom') {
+				// hoge
+			}
+			if(msg.command == 'leaveRoom') {
+				// hoge
 			}
 		}
 		if(msg.type == 'FROM_PAGE') {
