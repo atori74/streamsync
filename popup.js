@@ -124,7 +124,7 @@ document.getElementById('openRoom').onclick = elem => {
 			chrome.runtime.sendMessage({
 				'type': 'FROM_ACTION',
 				'command': 'openRoom',
-				'data': {'mediaURL': tabs[0].url}
+				'data': {'mediaURL': tabs[0].url, 'tabId': tabs[0].id}
 			}, undefined);
 		}
 	});
