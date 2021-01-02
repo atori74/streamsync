@@ -1,8 +1,3 @@
-// let s = document.createElement('script');
-// s.setAttribute('type', 'text/javascript');
-// s.setAttribute('src', 'stream.js');
-// document.body.insertBefore(s, document.body.firstChild);
-
 let playButton = document.getElementById('play')
 let pauseButton = document.getElementById('pause')
 let fastForward = document.getElementById('fastForward')
