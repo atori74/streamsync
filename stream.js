@@ -47,32 +47,6 @@ function ytPostCurrentTime() {
 	return code.join('\n');
 }
 
-function initPort() {
-	let code = [
-		"chrome.runtime.onConnect.addListener(function(port) {",
-		"	if (port.name != 'streamdata') { return }",
-		"	port.onMessage.addListener(function(msg) {",
-		"		if(msg.type == 'FROM_SCRIPT' && msg.request == 'getCurrentTime') {",
-		"			console.log('received message from script')",
-		"			port.postMessage({type: 'FROM_PAGE', response: document.getElementsByClassName('video-stream html5-main-video')[0].currentTime})",
-		"		}",
-		"	})",
-		"})"
-	]
-	return code.join('\n');
-}
-
-/*
-chrome.runtime.onConnect.addListener(function(port) {
-	if (port.name != 'streamdata') { return }
-	port.onMessage.addListener(function(msg) {
-		if(msg.request == 'getCurrentTime') {
-			port.postMessage({response: document.getElementsByClassName('video-stream html5-main-video')[0].currentTime})
-		}
-	})
-})
-*/
-
 function getCode(f) {
 	let code = f()
 	return code
