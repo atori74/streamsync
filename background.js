@@ -17,6 +17,32 @@ const sleep = ms => new Promise(resolve => {
 // 	return code.join('\n');
 // }
 
+const sendPlaybackPosition = async () => {
+	while(true) {
+		console.log('send playback position')
+		if(conn.readyState == WebSocket.CLOSED) {
+			console.log("sendPlaybackPosition: conn closed")
+			return;
+		}
+		if(conn.readyState == WebSocket.OPEN) {
+			chrome.storage.local.get(['pbPosition', 'currentTime', 'mediaURL'], data => {
+				if(!data.pbPosition) {
+					return;
+				}
+				conn.send(JSON.stringify({
+					'from': 'host',
+					'type': 'playbackPosition',
+					'data': {
+						'position': data.pbPosition,
+						'currentTime': data.currentTime,
+						'mediaURL': data.mediaURL,
+					}
+				}));
+				console.log('pbPositioin is sent')
+			});
+		}
+		await sleep(5000);
+	}
 }
 
 const scanCurrentTime = async tabId => {
@@ -101,6 +127,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					// open時のurlを記録
 					// 未実装:画面遷移時にはurlを更新する
 					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
+					sendPlaybackPosition(conn);
 				} else {
 					console.log('Your browser does not support WebSockets.');
 				}
