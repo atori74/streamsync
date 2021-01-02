@@ -32,6 +32,8 @@ chrome.runtime.onMessage.addListener(function(msg) {
 				// hoge
 				console.log('connection is closed');
 				document.getElementById('log').textContent = 'connection is closed';
+				document.getElementById('roomId').textContent = '';
+
 				break;
 			case 'joinSuccess':
 				console.log('client successfully joined the room.');
