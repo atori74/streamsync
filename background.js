@@ -166,6 +166,7 @@ chrome.runtime.onInstalled.addListener(function() {
 						handleFrame(json);
 					}
 				};
+				chrome.storage.local.set({'tagetTab': msg.data.tabID}, undefined);
 
 				return;
 			}
