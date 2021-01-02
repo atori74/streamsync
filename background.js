@@ -106,10 +106,11 @@ chrome.runtime.onInstalled.addListener(function() {
 				}
 			}
 			if(msg.command == 'closeRoom') {
-				if(conn.readyState != WebSocket.CLOSED) {
-					conn.close(1000);
-					isHost = true;
+				if(!conn || conn.readyState == WebSocket.CLOSED) {
+					return;
 				}
+				conn.close(1000);
+				isHost = true;
 			}
 			if(msg.command == 'joinRoom') {
 				// hoge
