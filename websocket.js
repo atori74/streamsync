@@ -2,14 +2,15 @@ const handleFrame = (obj) => {
 	// hoge
 	if(obj.from == 'server') {
 		switch(obj.type) {
-			case 'roomInfo':
+			case 'roomInfo': {
 				// hoge
 				let roomId = obj.data.roomID;
 				console.log('roomID: ', roomId);
 				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'roomInfo', data: {roomID: roomId}}, undefined);
 				chrome.storage.local.set({'roomID': roomId}, undefined);
 				break;
-			case 'joinSuccess':
+			}
+			case 'joinSuccess': {
 				let roomID = obj.data.roomID;
 				let mediaURL = obj.data.mediaURL;
 
@@ -22,7 +23,8 @@ const handleFrame = (obj) => {
 					'mediaURL': mediaURL,
 				}}, undefined);
 				break;
-			case 'playbackPosition':
+			}
+			case 'playbackPosition': {
 				let position = obj.data.position;
 				let recordedAt = Date.parse(obj.data.currentTime);
 
@@ -59,6 +61,7 @@ const handleFrame = (obj) => {
 
 				})
 				break;
+			}
 		}
 	}
 	if(obj.from == 'host') {
