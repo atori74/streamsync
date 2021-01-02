@@ -119,10 +119,15 @@ getPPButton.onclick = elem => {
 }
 
 document.getElementById('openRoom').onclick = elem => {
-	chrome.runtime.sendMessage({
-		'type': 'FROM_ACTION',
-		'command': 'openRoom',
-	}, undefined);
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		if(tabs[0].url.match(new RegExp('youtube.com/watch'))) {
+			chrome.runtime.sendMessage({
+				'type': 'FROM_ACTION',
+				'command': 'openRoom',
+				'data': {'mediaURL': tabs[0].url}
+			}, undefined);
+		}
+	});
 }
 
 document.getElementById('closeRoom').onclick = elem => {

@@ -98,6 +98,9 @@ chrome.runtime.onInstalled.addListener(function() {
 							handleFrame(json);
 						}
 					};
+					// open時のurlを記録
+					// 未実装:画面遷移時にはurlを更新する
+					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
 				} else {
 					console.log('Your browser does not support WebSockets.');
 				}
