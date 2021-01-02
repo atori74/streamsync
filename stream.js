@@ -47,6 +47,14 @@ function ytPostCurrentTime() {
 	return code.join('\n');
 }
 
+function ytSeekTo(position) {
+	let code = [
+		"var vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
+		"vid.currentTime = " + position + ';',
+	]
+	return code.join('\n');
+}
+
 function getCode(f) {
 	let code = f()
 	return code
