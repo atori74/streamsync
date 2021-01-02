@@ -33,6 +33,10 @@ chrome.runtime.onMessage.addListener(function(msg) {
 				console.log('connection is closed');
 				document.getElementById('log').textContent = 'connection is closed';
 				break;
+			case 'joinSuccess':
+				console.log('client successfully joined the room.');
+				document.getElementById('log').textContent = 'successfully joined.';
+				document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
 		}
 	}
 })
