@@ -37,7 +37,7 @@ const handleFrame = (obj) => {
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {
 					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-						if(tabs[0].url.match(new RegExp('^' + data.mediaURL))) {
+						if(tabs[0].url == mediaURL) {
 							chrome.tabs.executeScript(
 								tabs[0].id,
 								{code: ytSeekTo(positionToSeek)}
