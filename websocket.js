@@ -27,6 +27,7 @@ const handleFrame = (obj) => {
 			case 'playbackPosition': {
 				let position = obj.data.position;
 				let recordedAt = Date.parse(obj.data.currentTime);
+				let mediaURL = obj.data.mediaURL;
 
 				let deltaMilli = Date.now() - recordedAt;
 				// TODO: n倍をサイトごとに定数化する
@@ -34,8 +35,7 @@ const handleFrame = (obj) => {
 				let positionToSeek = position + delta;
 
 				// seek playback
-				chrome.storage.local.get(['targetTab', 'mediaURL'], data => {
-
+				chrome.storage.local.get(['targetTab'], data => {
 					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
 						if(tabs[0].url.match(new RegExp('^' + data.mediaURL))) {
 							chrome.tabs.executeScript(
