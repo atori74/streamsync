@@ -114,6 +114,10 @@ chrome.runtime.onInstalled.addListener(function() {
 						console.log('connection closed');
 						isHost = false;
 						closeConnection();
+
+						isScanning = false;
+						console.log('scan off')
+
 						chrome.storage.local.clear(undefined);
 					};
 					conn.onmessage = (evt) => {
@@ -124,6 +128,10 @@ chrome.runtime.onInstalled.addListener(function() {
 							handleFrame(json);
 						}
 					};
+					// playbackPositionの取得を開始
+					isScanning = true;
+					scanCurrentTime(msg.data.tabId);
+					console.log('scan toggled on');
 					// open時のurlを記録
 					// 未実装:画面遷移時にはurlを更新する
 					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
