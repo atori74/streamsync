@@ -151,6 +151,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				console.log(msg.data);
 				chrome.storage.local.set({
 					'pbPosition': msg.data,
+					'currentTime': (new Date()).toUTCString(),
 				}, undefined);
 			}
 		}
