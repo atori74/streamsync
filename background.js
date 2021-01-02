@@ -8,18 +8,8 @@ const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
 
-// const ytPostCurrentTime = () => {
-// 	let code = [
-// 		"vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
-// 		"chrome.runtime.sendMessage({type: 'FROM_PAGE', command: 'playbackPosition', data: vid.currentTime}, undefined);",
-// 		"vid.currentTime;"
-// 	]
-// 	return code.join('\n');
-// }
-
 const sendPlaybackPosition = async () => {
 	while(true) {
-		console.log('send playback position')
 		if(conn.readyState == WebSocket.CLOSED) {
 			console.log("sendPlaybackPosition: conn closed")
 			return;
@@ -38,8 +28,8 @@ const sendPlaybackPosition = async () => {
 						'mediaURL': data.mediaURL,
 					}
 				}));
-				console.log('pbPositioin is sent')
 			});
+			console.log('sent playback position to server')
 		}
 		await sleep(5000);
 	}
