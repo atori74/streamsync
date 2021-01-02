@@ -28,9 +28,40 @@ const handleFrame = (obj) => {
 		switch(obj.type) {
 			case 'playbackPosition':
 				let position = obj.data.position;
-				let currentTime = new Date(Date.parse(obj.data.currentTime));
+				let recordedAt = Date.parse(obj.data.currentTime);
+
+				let deltaMilli = Date.now() - recordedAt;
+				// TODO: n倍をサイトごとに定数化する
+				let delta = deltaMilli * 1000;
+				let positionToSeek = position + delta;
 
 				// seek playback
+				chrome.storage.local.get(['targetTab', 'mediaURL'], data => {
+
+					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+						if(tabs[0].url.match(new RegExp('^' + data.mediaURL))) {
+							chrome.tabs.executeScript(
+								tabs[0].id,
+								{code: ytSeekTo(positionToSeek)}
+							);
+						} else {
+							console.log("Host's media is not been played in active tab.")
+						}
+					});
+
+					// ターゲットをjoinRoomしたときのタブにするか、現在のアクティブタブにするか
+					//
+					// chrome.tabs.get(data.targetTab, tab => {
+					// 	if(tab.url.match(new RegExp('^' + data.mediaURL))) {
+					// 		chrome.tabs.executeScript(targetID, {
+					// 			code: ytSeekTo(positionToSeek),
+					// 		});
+					// 	} else {
+					// 		console.log("Host's media is not been played in target tab.")
+					// 	}
+					// });
+
+				})
 				break;
 		}
 	}
