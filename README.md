@@ -2,6 +2,8 @@
 
 StreamSync is a google chrome extension that enables to sync playback position between Host and Client (different browsers).
 
+**This have not been released yet. Now developing prototype.**
+
 ### How StreamSync works
 
 Host(chrome) -> (data) -> WS Server -> (data) -> Client(chrome)
