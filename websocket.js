@@ -11,6 +11,16 @@ const handleFrame = (obj) => {
 				break;
 		}
 	}
+	if(obj.from == 'host') {
+		switch(obj.type) {
+			case 'playbackPosition':
+				let position = obj.data.position;
+				let currentTime = new Date(Date.parse(obj.data.currentTime));
+
+				// seek playback
+				break;
+		}
+	}
 };
 
 const closeConnection = () => {
