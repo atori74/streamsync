@@ -56,6 +56,9 @@ chrome.runtime.onInstalled.addListener(function() {
 		}]);
 	});
 
+	// extension読込時はstorageをクリア
+	chrome.storage.local.clear(undefined);
+
 	chrome.runtime.onMessage.addListener(msg => {
 		if(msg.type == 'FROM_ACTION') {
 			if(msg.command == 'toggleScan') {
@@ -83,6 +86,7 @@ chrome.runtime.onInstalled.addListener(function() {
 						console.log('connection closed');
 						isHost = false;
 						closeConnection();
+						chrome.storage.local.clear(undefined);
 					};
 					conn.onmessage = (evt) => {
 						console.log('received ws frame');
