@@ -1,22 +1,38 @@
-let s = document.createElement('script');
-s.setAttribute('type', 'text/javascript');
-s.setAttribute('src', 'stream.js');
-document.body.insertBefore(s, document.body.firstChild);
-
 let playButton = document.getElementById('play')
 let pauseButton = document.getElementById('pause')
 let fastForward = document.getElementById('fastForward')
 let backTen = document.getElementById('backTen')
 let toggleScan = document.getElementById('toggleScan')
-let getCTButton = document.getElementById('getCurrentTime')
+let getPPButton = document.getElementById('getPBPosition')
 
-let scanning = false
+window.onload = () => {
+	chrome.storage.local.get('roomID', data => {
+		if(data.roomID) {
+			document.getElementById('roomId').textContent = 'room ID: ' + data.roomID;
+		}
+	})
+}
 
 chrome.runtime.onMessage.addListener(function(msg) {
 	if(msg.type == 'FROM_PAGE') {
-		if(msg.command == 'currentTime') {
+		if(msg.command == 'playbackPosition') {
 			console.log(msg.data)
-			document.getElementById('currentTime').textContent = msg.data;
+			document.getElementById('playbackPosition').textContent = msg.data;
+		}
+	}
+	if(msg.type == 'FROM_BG') {
+		console.log('from background: ', msg.command)
+		switch(msg.command) {
+			case 'roomInfo':
+				// hoge
+				console.log('room is open: ', msg.data.roomID);
+				document.getElementById('roomId').textContent = 'room ID: ' + msg.data.roomID;
+				break;
+			case 'connectionClosed':
+				// hoge
+				console.log('connection is closed');
+				document.getElementById('log').textContent = 'connection is closed';
+				break;
 		}
 	}
 })
@@ -91,10 +107,27 @@ toggleScan.onclick = function(elem) {
 	});
 }
 
-getCTButton.onclick = elem => {
-	chrome.storage.local.get('currentTime', data => {
-		document.getElementById('currentTime').textContent = data.currentTime;
+getPPButton.onclick = elem => {
+	chrome.storage.local.get('pbPosition', data => {
+		document.getElementById('playbackPosition').textContent = data.pbPosition;
 	})
 }
 
+document.getElementById('openRoom').onclick = elem => {
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		if(tabs[0].url.match(new RegExp('youtube.com/watch'))) {
+			chrome.runtime.sendMessage({
+				'type': 'FROM_ACTION',
+				'command': 'openRoom',
+				'data': {'mediaURL': tabs[0].url, 'tabId': tabs[0].id}
+			}, undefined);
+		}
+	});
+}
 
+document.getElementById('closeRoom').onclick = elem => {
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'closeRoom',
+	})
+}

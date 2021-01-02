@@ -4,7 +4,7 @@
     <style>
       button {
         height: 30px;
-        width: 80px;
+        width: 100px;
         outline: none;
       }
     </style>
@@ -15,8 +15,13 @@
     <button id="fastForward">Foward</button>
     <button id="backTen">Back</button>
     <button id="toggleScan">Scan</button>
-	<button id="getCurrentTime">GetCT</button>
-	<div id="currentTime"></div>
-    <script src="popup.js"></script>
+	<button id="getPBPosition">GetPP</button>
+	<button id="openRoom">OpenRoom</button>
+	<button id="closeRoom">CloseRoom</button>
+	<div id="playbackPosition"></div>
+	<div id="roomId"></div>
+	<div id="log"></div>
+	<script src="stream.js" type="text/javascript"></script>
+    <script src="popup.js" type="text/javascript"></script>
   </body>
 </html>
