@@ -22,10 +22,6 @@ const handleFrame = (obj) => {
 					'mediaURL': mediaURL,
 				}}, undefined);
 				break;
-		}
-	}
-	if(obj.from == 'host') {
-		switch(obj.type) {
 			case 'playbackPosition':
 				let position = obj.data.position;
 				let recordedAt = Date.parse(obj.data.currentTime);
@@ -63,6 +59,12 @@ const handleFrame = (obj) => {
 
 				})
 				break;
+		}
+	}
+	if(obj.from == 'host') {
+		switch(obj.type) {
+			default:
+				// hoge
 		}
 	}
 };
