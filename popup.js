@@ -137,14 +137,15 @@ document.getElementById('closeRoom').onclick = elem => {
 }
 
 document.getElementById('joinRoom').onclick = elem => {
-	let roomID = document.getElementById('roomToJoin').value
+	let roomID = document.getElementById('roomToJoin').value;
+	document.getElementById('roomToJoin').value = '';
 	chrome.runtime.sendMessage({
 		'type': 'FROM_ACTION',
 		'command': 'joinRoom',
 		'data': {
 			'roomID': roomID,
 		},
-	})
+	});
 }
 
 document.getElementById('leaveRoom').onclick = elem => {
