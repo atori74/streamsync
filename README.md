@@ -12,5 +12,5 @@ Host and Client have websocket connection with server as long as they are in the
 
 ### Related Repository
 
-**[atori74/streamsync-server](https://github.com/atori74/streamsync-server)**
+**[atori74/streamsync-server](https://github.com/atori74/streamsync-server)**  
 websocket server for streamsync, that communicate with Hosts and Clients
