@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener(function(msg) {
 			case 'roomInfo':
 				// hoge
 				console.log('room is open: ', msg.data.roomID);
-				document.getElementById('log').textContent = 'room ID: ' + msg.data.roomID;
+				document.getElementById('roomId').textContent = 'room ID: ' + msg.data.roomID;
 				break;
 			case 'connectionClosed':
 				// hoge

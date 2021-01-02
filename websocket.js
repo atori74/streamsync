@@ -7,6 +7,7 @@ const handleFrame = (obj) => {
 				let roomId = obj.data.roomID;
 				console.log('roomID: ', roomId);
 				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'roomInfo', data: {roomID: roomId}}, undefined);
+				chrome.storage.local.set({'roomID': roomId}, undefined);
 		}
 	}
 };
