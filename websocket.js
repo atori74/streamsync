@@ -31,7 +31,7 @@ const handleFrame = (obj) => {
 
 				let deltaMilli = Date.now() - recordedAt;
 				// TODO: n倍をサイトごとに定数化する
-				let delta = deltaMilli * 1000;
+				let delta = deltaMilli / 1000;
 				let positionToSeek = position + delta;
 
 				// seek playback
