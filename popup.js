@@ -8,15 +8,21 @@ let pauseButton = document.getElementById('pause')
 let fastForward = document.getElementById('fastForward')
 let backTen = document.getElementById('backTen')
 let toggleScan = document.getElementById('toggleScan')
-let getCTButton = document.getElementById('getCurrentTime')
+let getPPButton = document.getElementById('getPBPosition')
 
-let scanning = false
+window.onload = () => {
+	chrome.storage.local.get('roomID', data => {
+		if(data.roomID) {
+			document.getElementById('roomId').textContent = 'room ID: ' + data.roomID;
+		}
+	})
+}
 
 chrome.runtime.onMessage.addListener(function(msg) {
 	if(msg.type == 'FROM_PAGE') {
-		if(msg.command == 'currentTime') {
+		if(msg.command == 'playbackPosition') {
 			console.log(msg.data)
-			document.getElementById('currentTime').textContent = msg.data;
+			document.getElementById('playbackPosition').textContent = msg.data;
 		}
 	}
 	if(msg.type == 'FROM_BG') {
@@ -106,9 +112,9 @@ toggleScan.onclick = function(elem) {
 	});
 }
 
-getCTButton.onclick = elem => {
-	chrome.storage.local.get('currentTime', data => {
-		document.getElementById('currentTime').textContent = data.currentTime;
+getPPButton.onclick = elem => {
+	chrome.storage.local.get('pbPosition', data => {
+		document.getElementById('playbackPosition').textContent = data.pbPosition;
 	})
 }
 

@@ -116,9 +116,11 @@ chrome.runtime.onInstalled.addListener(function() {
 			}
 		}
 		if(msg.type == 'FROM_PAGE') {
-			if(msg.command == 'currentTime') {
+			if(msg.command == 'playbackPosition') {
 				console.log(msg.data);
-				chrome.storage.local.set({'currentTime': msg.data}, undefined);
+				chrome.storage.local.set({
+					'pbPosition': msg.data,
+				}, undefined);
 			}
 		}
 	})
