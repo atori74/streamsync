@@ -32,7 +32,13 @@ chrome.runtime.onMessage.addListener(function(msg) {
 				// hoge
 				console.log('connection is closed');
 				document.getElementById('log').textContent = 'connection is closed';
+				document.getElementById('roomId').textContent = '';
+
 				break;
+			case 'joinSuccess':
+				console.log('client successfully joined the room.');
+				document.getElementById('log').textContent = 'successfully joined.';
+				document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
 		}
 	}
 })
@@ -129,5 +135,24 @@ document.getElementById('closeRoom').onclick = elem => {
 	chrome.runtime.sendMessage({
 		'type': 'FROM_ACTION',
 		'command': 'closeRoom',
+	})
+}
+
+document.getElementById('joinRoom').onclick = elem => {
+	let roomID = document.getElementById('roomToJoin').value;
+	document.getElementById('roomToJoin').value = '';
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'joinRoom',
+		'data': {
+			'roomID': roomID,
+		},
+	});
+}
+
+document.getElementById('leaveRoom').onclick = elem => {
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'leaveRoom',
 	})
 }

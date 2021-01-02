@@ -1,5 +1,6 @@
 let isScanning = false;
 let isHost = false;
+let isClient = false;
 let conn;
 
 const SERVER_HOST = 'localhost:8889'
@@ -138,10 +139,46 @@ chrome.runtime.onInstalled.addListener(function() {
 				isHost = true;
 			}
 			if(msg.command == 'joinRoom') {
-				// hoge
+				if(isHost) {
+					console.log('you are host now.');
+					return;
+				}
+				if(isClient) {
+					console.log('you are already client.');
+					return;
+				}
+				let roomID = msg.data.roomID;
+
+				conn = new WebSocket('ws://' + SERVER_HOST + '/join/' + roomID);
+				isClient = true;
+				conn.onclose = () => {
+					console.log('connection closed');
+					isClient = false;
+					closeConnection();
+
+					chrome.storage.local.clear(undefined);
+				};
+				conn.onmessage = (evt) => {
+					console.log('received ws frame');
+					let messages = evt.data.split('\n');
+					for(let i = 0; i < messages.length; i++) {
+						let json = JSON.parse(messages[i]);
+						handleFrame(json);
+					}
+				};
+
+				return;
 			}
 			if(msg.command == 'leaveRoom') {
-				// hoge
+				if(!isClient) {
+					console.log('leaveRoom failed: you are not client.')
+					return;
+				}
+				conn.close(1000);
+				closeConnection();
+				isClient = false;
+
+				return;
 			}
 		}
 		if(msg.type == 'FROM_PAGE') {

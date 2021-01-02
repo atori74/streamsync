@@ -8,6 +8,30 @@ const handleFrame = (obj) => {
 				console.log('roomID: ', roomId);
 				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'roomInfo', data: {roomID: roomId}}, undefined);
 				chrome.storage.local.set({'roomID': roomId}, undefined);
+				break;
+			case 'joinSuccess':
+				let roomID = obj.data.roomID;
+				let mediaURL = obj.data.mediaURL;
+
+				chrome.storage.local.set({
+					'roomID': roomID,
+					'mediaURL': mediaURL,
+				}, undefined);
+				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'joinSuccess', data: {
+					'roomID': roomID,
+					'mediaURL': mediaURL,
+				}}, undefined);
+				break;
+		}
+	}
+	if(obj.from == 'host') {
+		switch(obj.type) {
+			case 'playbackPosition':
+				let position = obj.data.position;
+				let currentTime = new Date(Date.parse(obj.data.currentTime));
+
+				// seek playback
+				break;
 		}
 	}
 };
