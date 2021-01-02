@@ -131,3 +131,21 @@ document.getElementById('closeRoom').onclick = elem => {
 		'command': 'closeRoom',
 	})
 }
+
+document.getElementById('joinRoom').onclick = elem => {
+	let roomID = document.getElementById('roomToJoin').value
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'joinRoom',
+		'data': {
+			'roomID': roomID,
+		},
+	})
+}
+
+document.getElementById('leaveRoom').onclick = elem => {
+	chrome.runtime.sendMessage({
+		'type': 'FROM_ACTION',
+		'command': 'leaveRoom',
+	})
+}
