@@ -8,13 +8,15 @@ const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
 
-const ytPostCurrentTime = () => {
-	let code = [
-		"vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
-		"chrome.runtime.sendMessage({type: 'FROM_PAGE', command: 'currentTime', data: vid.currentTime}, undefined);",
-		"vid.currentTime;"
-	]
-	return code.join('\n');
+// const ytPostCurrentTime = () => {
+// 	let code = [
+// 		"vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
+// 		"chrome.runtime.sendMessage({type: 'FROM_PAGE', command: 'playbackPosition', data: vid.currentTime}, undefined);",
+// 		"vid.currentTime;"
+// 	]
+// 	return code.join('\n');
+// }
+
 }
 
 const scanCurrentTime = async tabId => {
