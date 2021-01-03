@@ -37,6 +37,10 @@ const handleFrame = (obj) => {
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {
 					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+						if (!tabs[0]) {
+							console.log('no tab in window');
+							return;
+						}
 						if(tabs[0].url == mediaURL) {
 							chrome.tabs.executeScript(
 								tabs[0].id,
