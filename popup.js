@@ -6,9 +6,12 @@ let toggleScan = document.getElementById('toggleScan')
 let getPPButton = document.getElementById('getPBPosition')
 
 window.onload = () => {
-	chrome.storage.local.get('roomID', data => {
+	chrome.storage.local.get(['roomID', 'mediaURL'], data => {
 		if(data.roomID) {
 			document.getElementById('roomId').textContent = 'room ID: ' + data.roomID;
+		}
+		if(data.mediaURL) {
+			document.getElementById('mediaURL').textContent = 'mediaURL: ' + data.mediaURL;
 		}
 	})
 }
