@@ -51,7 +51,8 @@ function ytSeekTo(position) {
 	let code = [
 		"var vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
 		"var delta = vid.currentTime - " + position + ";",
-		"if(delta > 1 || delta < -1) {",
+		"var allowedDiff = 0.5;",
+		"if(delta > allowedDiff || delta < -1 * allowedDiff) {",
 		"    vid.currentTime = " + position + ';',
 		"}"
 	]
