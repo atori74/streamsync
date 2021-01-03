@@ -41,7 +41,7 @@ function ytGetCurrentTime() {
 function ytPostCurrentTime() {
 	let code = [
 		"vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
-		"chrome.runtime.sendMessage({type: 'FROM_PAGE', command: 'playbackPosition', data: vid.currentTime}, undefined);",
+		"chrome.runtime.sendMessage({type: 'FROM_PAGE', command: 'playbackPosition', data: {position: vid.currentTime, currentTime: (new Date()).toISOString()}}, undefined);",
 		"vid.currentTime;"
 	]
 	return code.join('\n');

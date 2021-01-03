@@ -186,8 +186,8 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'playbackPosition') {
 				console.log(msg.data);
 				chrome.storage.local.set({
-					'pbPosition': msg.data,
-					'currentTime': (new Date()).toISOString(),
+					'pbPosition': msg.data.position,
+					'currentTime': msg.data.currentTime,
 				}, undefined);
 			}
 		}
