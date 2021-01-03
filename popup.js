@@ -6,9 +6,12 @@ let toggleScan = document.getElementById('toggleScan')
 let getPPButton = document.getElementById('getPBPosition')
 
 window.onload = () => {
-	chrome.storage.local.get('roomID', data => {
+	chrome.storage.local.get(['roomID', 'mediaURL'], data => {
 		if(data.roomID) {
 			document.getElementById('roomId').textContent = 'room ID: ' + data.roomID;
+		}
+		if(data.mediaURL) {
+			document.getElementById('mediaURL').textContent = 'mediaURL: ' + data.mediaURL;
 		}
 	})
 }
@@ -33,12 +36,15 @@ chrome.runtime.onMessage.addListener(function(msg) {
 				console.log('connection is closed');
 				document.getElementById('log').textContent = 'connection is closed';
 				document.getElementById('roomId').textContent = '';
+				document.getElementById('mediaURL').textContent = '';
 
 				break;
 			case 'joinSuccess':
 				console.log('client successfully joined the room.');
 				document.getElementById('log').textContent = 'successfully joined.';
 				document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
+				document.getElementById('mediaURL').textContent = 'mediaURL: ' + msg.data.mediaURL;
+				break;
 		}
 	}
 })
