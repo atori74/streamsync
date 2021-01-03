@@ -50,7 +50,11 @@ function ytPostCurrentTime() {
 function ytSeekTo(position) {
 	let code = [
 		"var vid = document.getElementsByClassName('video-stream html5-main-video')[0];",
-		"vid.currentTime = " + position + ';',
+		"var delta = vid.currentTime - " + position + ";",
+		"var allowedDiff = 0.5;",
+		"if(delta > allowedDiff || delta < -1 * allowedDiff) {",
+		"    vid.currentTime = " + position + ';',
+		"}"
 	]
 	return code.join('\n');
 }
