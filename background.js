@@ -104,12 +104,12 @@ chrome.runtime.onInstalled.addListener(function() {
 					conn.onclose = () => {
 						console.log('connection closed');
 						isHost = false;
-						closeConnection();
 
 						isScanning = false;
 						console.log('scan off')
 
 						chrome.storage.local.clear(undefined);
+						closeConnection();
 					};
 					conn.onmessage = (evt) => {
 						console.log('received ws frame');
@@ -154,9 +154,9 @@ chrome.runtime.onInstalled.addListener(function() {
 				conn.onclose = () => {
 					console.log('connection closed');
 					isClient = false;
-					closeConnection();
 
 					chrome.storage.local.clear(undefined);
+					closeConnection();
 				};
 				conn.onmessage = (evt) => {
 					console.log('received ws frame');

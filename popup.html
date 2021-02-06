@@ -1,31 +1,70 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      button {
-        height: 30px;
-        width: 100px;
-        outline: none;
-      }
-    </style>
-  </head>
-  <body>
-    <button id="play">Play</button>
-    <button id="pause">Pause</button>
-    <button id="fastForward">Foward</button>
-    <button id="backTen">Back</button>
-    <button id="toggleScan">Scan</button>
-	<button id="getPBPosition">GetPP</button>
-	<button id="openRoom">OpenRoom</button>
-	<button id="closeRoom">CloseRoom</button>
-	<div><span>JOIN: </span><input type="text" id="roomToJoin"></div>
-	<button id="joinRoom">JoinRoom</button>
-	<button id="leaveRoom">LeaveRoom</button>
-	<div id="playbackPosition"></div>
-	<div id="roomId"></div>
-	<div id="mediaURL"></div>
-	<div id="log"></div>
-	<script src="stream.js" type="text/javascript"></script>
-    <script src="popup.js" type="text/javascript"></script>
-  </body>
+    <head>
+		<meta charset="utf-8">
+  	    <link href="./popup.css" rel="stylesheet">
+    </head>
+    <body>
+		<div class="popup-header"><div class="logo">StreamSync</div></div>
+		<div id="main" class="main-container">
+		</div>
+		<div class="footer">
+			<div class="log-label"># Log</div>
+			<div id="logDiv"></div>
+		</div>
+		<!--
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button id="fastForward">Foward</button>
+        <button id="backTen">Back</button>
+        <button id="toggleScan">Scan</button>
+		<button id="getPBPosition">GetPP</button>
+		<button id="openRoom">OpenRoom</button>
+		<button id="closeRoom">CloseRoom</button>
+		<div><span>JOIN: </span><input type="text" id="roomToJoin"></div>
+		<button id="joinRoom">JoinRoom</button>
+		<button id="leaveRoom">LeaveRoom</button>
+		<div id="playbackPosition"></div>
+		<div id="roomId"></div>
+		<div id="mediaURL"></div>
+		<div id="log"></div>
+		-->
+
+		<script src="stream.js" type="text/javascript"></script>
+        <script src="popup.js" type="text/javascript"></script>
+
+		<template id="defaultPage">
+			<div class="ui-button-outer"><a id="openRoom" href="#" class="ui-button">ルームを開く</a></div>
+			<div class="join-form">
+				<span>&gt;</span><input id="roomToJoin" type="text" placeholder="roomID" class="ui-input">
+				<div class="ui-button-outer"><a id="joinRoom" href="#" class="ui-button">ルームに参加</a></div>
+			</div>
+		</template>
+		<template id="hostPage">
+			<div class="room-info">
+				<div class="ui-info">
+					<div class="ui-info-label">roomID</div>
+					<div id="roomId" class="ui-info-value"></div>
+				</div>
+				<div class="ui-info">
+					<div class="ui-info-label">mediaURL</div>
+					<div id="mediaURL" class="ui-info-value"></div>
+				</div>
+			</div>
+			<div class="ui-button-outer"><a id="closeRoom" href="#" class="ui-button">ルームを終了</a></div>
+		</template>
+		<template id="clientPage">
+			<div class="room-info">
+				<div class="ui-info">
+					<div class="ui-info-label">roomID</div>
+					<div id="roomId" class="ui-info-value"></div>
+				</div>
+				<div class="ui-info">
+					<div class="ui-info-label">mediaURL</div>
+					<div id="mediaURL" class="ui-info-value"></div>
+				</div>
+			</div>
+			<div class="ui-button-outer"><a id="leaveRoom" href="#" class="ui-button">ルームを退出</a></div>
+		</template>
+    </body>
 </html>
