@@ -82,7 +82,7 @@ var YoutubeSync = class {
 
 	sync(position) {
 		const delta = this.video.currentTime - position;
-		if(delta > allowedDiff || delta < -1 * allowedDiff) {
+		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
 		};
 	}
