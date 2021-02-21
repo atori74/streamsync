@@ -25,14 +25,15 @@ const handleFrame = (obj) => {
 				break;
 			}
 			case 'playbackPosition': {
-				let position = obj.data.position;
-				let recordedAt = Date.parse(obj.data.currentTime);
-				let mediaURL = obj.data.mediaURL;
+				const position = obj.data.position;
+				const recordedAt = Date.parse(obj.data.currentTime);
+				const mediaURL = obj.data.mediaURL;
 
-				let deltaMilli = Date.now() - recordedAt;
+				// 通信にかかったラグの分、seekする時間を後ろ倒す
+				const deltaMilli = Date.now() - recordedAt;
 				// TODO: n倍をサイトごとに定数化する
-				let delta = deltaMilli / 1000;
-				let positionToSeek = position + delta;
+				const delta = deltaMilli / 1000;
+				const positionToSeek = position + delta;
 
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {
@@ -44,7 +45,7 @@ const handleFrame = (obj) => {
 						if(tabs[0].url == mediaURL) {
 							chrome.tabs.executeScript(
 								tabs[0].id,
-								{code: ytSeekTo(positionToSeek)}
+								{code: `syncCtl.sync(${positionToSeek})`}
 							);
 						} else {
 							console.log("Host's media is not been played in active tab.")
@@ -78,5 +79,12 @@ const handleFrame = (obj) => {
 
 const closeConnection = () => {
 	console.log('closeConnection was called')
+	chrome.storage.local.get(['targetTab'], data => {
+		chrome.tabs.executeScript(
+			data.targetTab,
+			{code: 'syncCtl.release();'}
+		);
+	})
+	chrome.storage.local.clear(undefined);
 	chrome.runtime.sendMessage({type: 'FROM_BG', command: 'connectionClosed'});
 };

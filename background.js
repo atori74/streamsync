@@ -44,12 +44,16 @@ const scanCurrentTime = async tabId => {
 			return;
 		}
 	})
+
+	initContentScript(tabId);
+	await sleep(1000);
+
 	while(true) {
 		chrome.tabs.get(tabId, tab => {
 			if(tab.url.match(new RegExp('youtube.com/watch'))) {
 				chrome.tabs.executeScript(
 					tab.id,
-					{code: ytPostCurrentTime()}
+					{code: 'syncCtl.sendPlaybackPosition();'}
 				);
 			}
 		});
@@ -108,7 +112,6 @@ chrome.runtime.onInstalled.addListener(function() {
 						isScanning = false;
 						console.log('scan off')
 
-						chrome.storage.local.clear(undefined);
 						closeConnection();
 					};
 					conn.onmessage = (evt) => {
@@ -151,11 +154,13 @@ chrome.runtime.onInstalled.addListener(function() {
 
 				conn = new WebSocket('ws://' + SERVER_HOST + '/join/' + roomID);
 				isClient = true;
+
+				initContentScript(msg.data.tabID);
+
 				conn.onclose = () => {
 					console.log('connection closed');
 					isClient = false;
 
-					chrome.storage.local.clear(undefined);
 					closeConnection();
 				};
 				conn.onmessage = (evt) => {
@@ -189,6 +194,18 @@ chrome.runtime.onInstalled.addListener(function() {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				}, undefined);
+			}
+			if(msg.command == 'played') {
+				console.log('EVENT: played');
+			}
+			if(msg.command == 'paused') {
+				console.log('EVENT: paused');
+			}
+			if(msg.command == 'seeked') {
+				console.log('EVENT: seeked');
+			}
+			if(msg.command == 'adInterrupted') {
+				console.log('EVENT: adInterrupted');
 			}
 		}
 	})
