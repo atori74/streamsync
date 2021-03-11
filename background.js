@@ -155,7 +155,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				conn = new WebSocket('ws://' + SERVER_HOST + '/join/' + roomID);
 				isClient = true;
 
-				initContentScript(msg.data.tabID);
+				// initContentScript(msg.data.tabID);
 
 				conn.onclose = () => {
 					console.log('connection closed');
@@ -171,7 +171,7 @@ chrome.runtime.onInstalled.addListener(function() {
 						handleFrame(json);
 					}
 				};
-				chrome.storage.local.set({'tagetTab': msg.data.tabID}, undefined);
+				// chrome.storage.local.set({'tagetTab': msg.data.tabID}, undefined);
 
 				return;
 			}

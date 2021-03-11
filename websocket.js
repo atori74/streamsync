@@ -11,8 +11,8 @@ const handleFrame = (obj) => {
 				break;
 			}
 			case 'joinSuccess': {
-				let roomID = obj.data.roomID;
-				let mediaURL = obj.data.mediaURL;
+				const roomID = obj.data.roomID;
+				const mediaURL = obj.data.mediaURL;
 
 				chrome.storage.local.set({
 					'roomID': roomID,
@@ -22,6 +22,21 @@ const handleFrame = (obj) => {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
 				}}, undefined);
+
+				chrome.tabs.create({active: true, url: mediaURL}, tab => {
+					chrome.tabs.onUpdated.addListener(function f(_tabId, changeInfo, _tab) {
+						if(tab.id == _tabId && changeInfo.status == 'complete') {
+							initContentScript(tab.id);
+							chrome.storage.local.set({targetTab: tab.id}, undefined);
+
+							// TODO
+							// tabにイベントハンドラーを追加
+							// tabが閉じられたらleave
+							chrome.tabs.onUpdated.removeListener(f);
+						}
+					})
+				});
+
 				break;
 			}
 			case 'playbackPosition': {
@@ -37,12 +52,13 @@ const handleFrame = (obj) => {
 
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {
+					// ターゲットを現在のアクティブタブにする
 					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
 						if (!tabs[0]) {
 							console.log('no tab in window');
 							return;
 						}
-						if(tabs[0].url == mediaURL) {
+						if(tabs[0].url == mediaURL && tabs[0].id == data.targetTab) {
 							chrome.tabs.executeScript(
 								tabs[0].id,
 								{code: `syncCtl.sync(${positionToSeek})`}
@@ -52,18 +68,20 @@ const handleFrame = (obj) => {
 						}
 					});
 
-					// ターゲットをjoinRoomしたときのタブにするか、現在のアクティブタブにするか
-					//
+					// ターゲットをjoinRoomしたときのタブにする
+					// if(!data.targetTab) {
+					// 	return;
+					// }
 					// chrome.tabs.get(data.targetTab, tab => {
-					// 	if(tab.url.match(new RegExp('^' + data.mediaURL))) {
-					// 		chrome.tabs.executeScript(targetID, {
-					// 			code: ytSeekTo(positionToSeek),
-					// 		});
+					// 	if(tab.url == mediaURL) {
+					// 		chrome.tabs.executeScript(
+					// 			data.targetTab,
+					// 			{code: `syncCtl.sync(${positionToSeek})`}
+					// 		);
 					// 	} else {
 					// 		console.log("Host's media is not been played in target tab.")
 					// 	}
 					// });
-
 				})
 				break;
 			}

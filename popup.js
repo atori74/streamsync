@@ -43,7 +43,7 @@ const renderClientView = _ => {
 
 	renderRoomInfo();
 
-	reloadLog();
+	reloadLogs();
 }
 
 const renderDefaultView = _ => {
