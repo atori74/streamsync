@@ -48,7 +48,10 @@ const handleFrame = (obj) => {
 				const deltaMilli = Date.now() - recordedAt;
 				// TODO: n倍をサイトごとに定数化する
 				const delta = deltaMilli / 1000;
-				const positionToSeek = position + delta;
+
+				// const positionToSeek = position + delta;
+				// 時刻補正を無効化
+				let positionToSeek = position;
 
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {

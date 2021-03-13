@@ -3,7 +3,7 @@ let isHost = false;
 let isClient = false;
 let conn;
 
-const SERVER_HOST = 'localhost:8889'
+const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
 
 const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
@@ -103,7 +103,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				
 				// send openRoom command to server
 				if(window['WebSocket']) {
-					conn = new WebSocket('ws://' + SERVER_HOST + '/new');
+					conn = new WebSocket(ENDPOINT + '/new');
 					isHost = true;
 					conn.onclose = () => {
 						console.log('connection closed');
@@ -152,7 +152,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				}
 				let roomID = msg.data.roomID;
 
-				conn = new WebSocket('ws://' + SERVER_HOST + '/join/' + roomID);
+				conn = new WebSocket(ENDPOINT + '/join/' + roomID);
 				isClient = true;
 
 				// initContentScript(msg.data.tabID);
