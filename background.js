@@ -12,29 +12,27 @@ const sleep = ms => new Promise(resolve => {
 });
 
 const sendPlaybackPosition = async () => {
-	while(true) {
-		if(conn.readyState == WebSocket.CLOSED) {
-			console.log("sendPlaybackPosition: conn closed")
-			return;
-		}
-		if(conn.readyState == WebSocket.OPEN) {
-			chrome.storage.local.get(['pbPosition', 'currentTime', 'mediaURL'], data => {
-				if(!data.pbPosition) {
-					return;
+	if(conn.readyState == WebSocket.CLOSED) {
+		console.log("sendPlaybackPosition: conn closed")
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		chrome.storage.local.get(['pbPosition', 'currentTime', 'mediaURL'], data => {
+			if(!(data.pbPosition && data.currentTime && data.mediaURL)) {
+				console.log("data in storage is not enough to send PB")
+				return
+			}
+			conn.send(JSON.stringify({
+				'from': 'host',
+				'type': 'playbackPosition',
+				'data': {
+					'position': data.pbPosition,
+					'currentTime': data.currentTime,
+					'mediaURL': data.mediaURL,
 				}
-				conn.send(JSON.stringify({
-					'from': 'host',
-					'type': 'playbackPosition',
-					'data': {
-						'position': data.pbPosition,
-						'currentTime': data.currentTime,
-						'mediaURL': data.mediaURL,
-					}
-				}));
-			});
-			console.log('sent playback position to server')
-		}
-		await sleep(5000);
+			}));
+		});
+		console.log('sent playback position to server')
 	}
 }
 
@@ -43,6 +41,7 @@ const scanCurrentTime = async tabId => {
 		if(tabId == id) {
 			console.log('taget tab was removed');
 			isScanning = false;
+			conn.close();
 			return;
 		}
 	})
@@ -56,7 +55,8 @@ const scanCurrentTime = async tabId => {
 				);
 			}
 		});
-		await sleep(1000);
+		// 2秒に1回に変更
+		await sleep(2000);
 		if(!isScanning) {
 			return;
 		}
@@ -126,6 +126,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					scanCurrentTime(msg.data.tabId);
 					console.log('scan toggled on');
 					// open時のurlを記録
+					// TODO
 					// 未実装:画面遷移時にはurlを更新する
 					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
 					sendPlaybackPosition(conn);
@@ -191,20 +192,27 @@ chrome.runtime.onInstalled.addListener(function() {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				}, undefined);
+
+				sendPlaybackPosition();
+				return;
 			}
 
 			// content scriptで動画の状態を監視、statusの変化を受け取る
 			if(msg.command == 'played') {
 				console.log('EVENT: played');
+				return;
 			}
 			if(msg.command == 'paused') {
 				console.log('EVENT: paused');
+				return;
 			}
 			if(msg.command == 'seeked') {
 				console.log('EVENT: seeked');
+				return;
 			}
 			if(msg.command == 'adInterrupted') {
 				console.log('EVENT: adInterrupted');
+				return;
 			}
 		}
 	})
