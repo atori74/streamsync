@@ -66,13 +66,14 @@ function getCode(f) {
 
 // roomを開いたときに最初に呼ぶ
 // 必要な関数とかを定義しておく
-const initContentScript = tabId => {
-	chrome.tabs.get(tabId, tab => {
-		if(tab.url.match(new RegExp('youtube.com/watch'))) {
-			chrome.tabs.executeScript(
-				tab.id,
-				{file: 'controller.js'},
-			);
-		}
-	});
-}
+// const initContentScript = tabId => {
+// 	chrome.tabs.get(tabId, tab => {
+// 		console.log(tab.id, tab.url, tab.title, tab.status)
+// 		if(tab.url.match(new RegExp('youtube.com/watch'))) {
+// 			chrome.tabs.executeScript(
+// 				tab.id,
+// 				{file: 'controller.js'},
+// 			);
+// 		}
+// 	});
+// }

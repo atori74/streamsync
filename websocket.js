@@ -1,4 +1,4 @@
-const handleFrame = (obj) => {
+const handleFrame = async (obj) => {
 	// hoge
 	if(obj.from == 'server') {
 		switch(obj.type) {
@@ -23,10 +23,13 @@ const handleFrame = (obj) => {
 					'mediaURL': mediaURL,
 				}}, undefined);
 
+				await sleep(1000)
+
 				chrome.tabs.create({active: true, url: mediaURL}, tab => {
-					chrome.tabs.onUpdated.addListener(function f(_tabId, changeInfo, _tab) {
+					chrome.tabs.onUpdated.addListener(async function f(_tabId, changeInfo, _tab) {
 						if(tab.id == _tabId && changeInfo.status == 'complete') {
-							initContentScript(tab.id);
+							// initContentScript(tab.id);
+							// storageにtargetTabが登録されるまではseekは発生しない
 							chrome.storage.local.set({targetTab: tab.id}, undefined);
 
 							// TODO
@@ -56,35 +59,35 @@ const handleFrame = (obj) => {
 				// seek playback
 				chrome.storage.local.get(['targetTab'], data => {
 					// ターゲットを現在のアクティブタブにする
-					chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-						if (!tabs[0]) {
-							console.log('no tab in window');
-							return;
-						}
-						if(tabs[0].url == mediaURL && tabs[0].id == data.targetTab) {
-							chrome.tabs.executeScript(
-								tabs[0].id,
-								{code: `syncCtl.sync(${positionToSeek})`}
-							);
-						} else {
-							console.log("Host's media is not been played in active tab.")
-						}
-					});
-
-					// ターゲットをjoinRoomしたときのタブにする
-					// if(!data.targetTab) {
-					// 	return;
-					// }
-					// chrome.tabs.get(data.targetTab, tab => {
-					// 	if(tab.url == mediaURL) {
+					// chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+					// 	if (!tabs[0]) {
+					// 		console.log('no tab in window');
+					// 		return;
+					// 	}
+					// 	if(tabs[0].url == mediaURL && tabs[0].id == data.targetTab) {
 					// 		chrome.tabs.executeScript(
-					// 			data.targetTab,
+					// 			tabs[0].id,
 					// 			{code: `syncCtl.sync(${positionToSeek})`}
 					// 		);
 					// 	} else {
-					// 		console.log("Host's media is not been played in target tab.")
+					// 		console.log("Host's media is not been played in active tab.")
 					// 	}
 					// });
+
+					// ターゲットをjoinRoomしたときのタブにする
+					if(!data.targetTab) {
+						return;
+					}
+					chrome.tabs.get(data.targetTab, tab => {
+						if(tab.url == mediaURL) {
+							chrome.tabs.executeScript(
+								data.targetTab,
+								{code: `syncCtl.sync(${positionToSeek})`}
+							);
+						} else {
+							console.log("Host's media is not been played in target tab.")
+						}
+					});
 				})
 				break;
 			}

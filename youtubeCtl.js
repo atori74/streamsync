@@ -26,10 +26,7 @@ var YoutubeSync = class {
 	}
 
 	initEventListener() {
-		// event handler として渡すのは、thisを使わないクロージャにする
-		// addEventのまえにthisをクロージャと同じスコープの別名変数に格納しておく
 		// Arrow Function では定義時点のthisが保存されるのでthisを別名変数にする必要なし
-		// const _this = this;
 		this.playedHandler = _ => {
 			this.sendMessage('played')
 		};
@@ -82,7 +79,7 @@ var YoutubeSync = class {
 
 	sync(position) {
 		const delta = this.video.currentTime - position;
-		if(delta > allowedDiff || delta < -1 * allowedDiff) {
+		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
 		};
 	}
