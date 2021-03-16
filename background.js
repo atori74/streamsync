@@ -3,8 +3,8 @@ let isHost = false;
 let isClient = false;
 let conn;
 
-// const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-const ENDPOINT = 'ws://localhost:8080'
+const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+// const ENDPOINT = 'ws://localhost:8080'
 
 
 const sleep = ms => new Promise(resolve => {
