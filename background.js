@@ -4,6 +4,8 @@ let isClient = false;
 let conn;
 
 const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+// const ENDPOINT = 'ws://localhost:8080'
+
 
 const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
@@ -44,12 +46,13 @@ const scanCurrentTime = async tabId => {
 			return;
 		}
 	})
+
 	while(true) {
 		chrome.tabs.get(tabId, tab => {
 			if(tab.url.match(new RegExp('youtube.com/watch'))) {
 				chrome.tabs.executeScript(
 					tab.id,
-					{code: ytPostCurrentTime()}
+					{code: 'syncCtl.sendPlaybackPosition();'}
 				);
 			}
 		});
@@ -108,7 +111,6 @@ chrome.runtime.onInstalled.addListener(function() {
 						isScanning = false;
 						console.log('scan off')
 
-						chrome.storage.local.clear(undefined);
 						closeConnection();
 					};
 					conn.onmessage = (evt) => {
@@ -151,11 +153,11 @@ chrome.runtime.onInstalled.addListener(function() {
 
 				conn = new WebSocket(ENDPOINT + '/join/' + roomID);
 				isClient = true;
+
 				conn.onclose = () => {
 					console.log('connection closed');
 					isClient = false;
 
-					chrome.storage.local.clear(undefined);
 					closeConnection();
 				};
 				conn.onmessage = (evt) => {
@@ -166,7 +168,6 @@ chrome.runtime.onInstalled.addListener(function() {
 						handleFrame(json);
 					}
 				};
-				chrome.storage.local.set({'tagetTab': msg.data.tabID}, undefined);
 
 				return;
 			}
@@ -184,11 +185,26 @@ chrome.runtime.onInstalled.addListener(function() {
 		}
 		if(msg.type == 'FROM_PAGE') {
 			if(msg.command == 'playbackPosition') {
+				// content scriptで取得したPBを受けとり、storageに保存
 				console.log(msg.data);
 				chrome.storage.local.set({
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				}, undefined);
+			}
+
+			// content scriptで動画の状態を監視、statusの変化を受け取る
+			if(msg.command == 'played') {
+				console.log('EVENT: played');
+			}
+			if(msg.command == 'paused') {
+				console.log('EVENT: paused');
+			}
+			if(msg.command == 'seeked') {
+				console.log('EVENT: seeked');
+			}
+			if(msg.command == 'adInterrupted') {
+				console.log('EVENT: adInterrupted');
 			}
 		}
 	})
