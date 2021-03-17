@@ -11,6 +11,18 @@ const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
 
+const popupLog = msg => {
+	chrome.storage.local.get(['userLog'], data => {
+		let logs = data.userLog;
+		if(logs) {
+			logs.push(msg);
+		} else {
+			logs = [msg,];
+		}
+		chrome.storage.local.set({'userLog': logs}, undefined);
+	})
+}
+
 const sendPlaybackPosition = async () => {
 	while(true) {
 		if(conn.readyState == WebSocket.CLOSED) {
@@ -191,6 +203,8 @@ chrome.runtime.onInstalled.addListener(function() {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				}, undefined);
+				popupLog('playback: ' + msg.data.position);
+				chrome.runtime.sendMessage({'type': 'FROM_BG', 'command': 'reloadLog'}, undefined);
 			}
 
 			// content scriptで動画の状態を監視、statusの変化を受け取る

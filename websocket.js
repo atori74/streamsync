@@ -6,8 +6,11 @@ const handleFrame = async (obj) => {
 				// hoge
 				let roomId = obj.data.roomID;
 				console.log('roomID: ', roomId);
-				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'roomInfo', data: {roomID: roomId}}, undefined);
-				chrome.storage.local.set({'roomID': roomId}, undefined);
+				chrome.storage.local.set({'roomID': roomId, 'status': 'host'}, undefined);
+				popupLog('Successfully opened room: ' + roomId);
+				// TODO
+				// rerender popup
+				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'rerenderView'}, undefined);
 				break;
 			}
 			case 'joinSuccess': {
@@ -17,11 +20,12 @@ const handleFrame = async (obj) => {
 				chrome.storage.local.set({
 					'roomID': roomID,
 					'mediaURL': mediaURL,
+					'status': 'client',
 				}, undefined);
-				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'joinSuccess', data: {
-					'roomID': roomID,
-					'mediaURL': mediaURL,
-				}}, undefined);
+				popupLog('Successfully joined the room.');
+				// TODO
+				// rerender popup
+				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'rerenderView'}, undefined);
 
 				await sleep(1000)
 
@@ -110,5 +114,6 @@ const closeConnection = () => {
 		);
 	})
 	chrome.storage.local.clear(undefined);
-	chrome.runtime.sendMessage({type: 'FROM_BG', command: 'connectionClosed'});
+	popupLog('Connection closed');
+	chrome.runtime.sendMessage({type: 'FROM_BG', command: 'rerenderView'}, undefined);
 };
