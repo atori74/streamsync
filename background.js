@@ -3,8 +3,8 @@ let isHost = false;
 let isClient = false;
 let conn;
 
-const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-// const ENDPOINT = 'ws://localhost:8080'
+// const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+const ENDPOINT = 'ws://localhost:8080'
 
 
 const sleep = ms => new Promise(resolve => {
@@ -43,7 +43,9 @@ const appendUserLog = logs => {
 	chrome.runtime.sendMessage({
 		'type': 'FROM_BG',
 		'command': 'appendLog',
-		'data': logs,
+		'data': {
+			'logs': logs,
+		},
 	})
 }
 
@@ -83,14 +85,18 @@ const scanCurrentTime = async tabId => {
 	})
 
 	while(true) {
-		chrome.tabs.get(tabId, tab => {
-			if(tab.url.match(new RegExp('youtube.com/watch'))) {
-				chrome.tabs.executeScript(
-					tab.id,
-					{code: 'syncCtl.sendPlaybackPosition();'}
-				);
+		chrome.storage.local.get('roomID', data => {
+			if(data.roomID) {
+				chrome.tabs.get(tabId, tab => {
+					if(tab.url.match(new RegExp('youtube.com/watch'))) {
+						chrome.tabs.executeScript(
+							tab.id,
+							{code: 'syncCtl.sendPlaybackPosition();'}
+						);
+					}
+				});
 			}
-		});
+		})
 		// 2秒に1回に変更
 		await sleep(2000);
 		if(!isScanning) {
@@ -165,7 +171,6 @@ chrome.runtime.onInstalled.addListener(function() {
 					// TODO
 					// 未実装:画面遷移時にはurlを更新する
 					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
-					sendPlaybackPosition(conn);
 				} else {
 					console.log('Your browser does not support WebSockets.');
 				}

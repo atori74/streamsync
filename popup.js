@@ -173,12 +173,6 @@ chrome.runtime.onMessage.addListener(msg => {
 	//
 	//
 	//
-	if(msg.type == 'FROM_PAGE') {
-		if(msg.command == 'playbackPosition') {
-			console.log(msg.data)
-			appendLog('playback: ' + msg.data.position);
-		}
-	}
 	if(msg.type == 'FROM_BG') {
 		console.log('from background: ', msg.command)
 		switch(msg.command) {
@@ -189,40 +183,6 @@ chrome.runtime.onMessage.addListener(msg => {
 				for(const log of msg.data.logs) {
 					appendLog(log);
 				}
-				break;
-			case 'roomInfo':
-				// openRoom が成功したときにHostViewに移行する
-				chrome.storage.local.set({'status': 'host'}, undefined); //こういう後に響く処理はpopupでやらない
-				console.log('room is open: ', msg.data.roomID);
-				// document.getElementById('roomId').textContent = 'room ID: ' + msg.data.roomID;
-
-				renderHostView();
-				appendLog('Successfully opened room: ' + msg.data.roomID);
-
-				break;
-			case 'connectionClosed':
-				// connが切れたときにdefaultViewに移行する
-				console.log('connection is closed');
-				// document.getElementById('log').textContent = 'connection is closed';
-				// document.getElementById('roomId').textContent = '';
-				// document.getElementById('mediaURL').textContent = '';
-
-				// connCloseしたときはbackground側でstorageをclearするから
-				// popup側でstatusを変更することはない
-				renderDefaultView();
-
-				break;
-			case 'joinSuccess':
-				// joinが成功したときにClientViewに移行する
-				chrome.storage.local.set({'status': 'client'}, undefined); //こういう後に響く処理はpopupでやらない
-				console.log('client successfully joined the room.');
-				// document.getElementById('log').textContent = 'successfully joined.';
-				// document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
-				// document.getElementById('mediaURL').textContent = 'mediaURL: ' + msg.data.mediaURL;
-
-				renderClientView();
-				appendLog('Successfully joined the room.')
-
 				break;
 		}
 	}
