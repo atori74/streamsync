@@ -11,15 +11,39 @@ const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
 
-const popupLog = msg => {
+const rerenderPopup = log => {
 	chrome.storage.local.get(['userLog'], data => {
-		let logs = data.userLog;
-		if(logs) {
-			logs.push(msg);
+		let allLogs = data.userLog;
+		if(allLogs) {
+			allLogs.push(log);
 		} else {
-			logs = [msg,];
+			allLogs = [log,];
 		}
-		chrome.storage.local.set({'userLog': logs}, undefined);
+		chrome.storage.local.set({'userLog': allLogs}, undefined);
+	})
+
+	chrome.runtime.sendMessage({
+		'type': 'FROM_BG',
+		'command': 'rerenderView',
+	})
+
+}
+
+const appendUserLog = logs => {
+	chrome.storage.local.get(['userLog'], data => {
+		let allLogs = data.userLog;
+		if(allLogs) {
+			allLogs.push(...logs);
+		} else {
+			allLogs = logs
+		}
+		chrome.storage.local.set({'userLog': allLogs}, undefined);
+	})
+
+	chrome.runtime.sendMessage({
+		'type': 'FROM_BG',
+		'command': 'appendLog',
+		'data': logs,
 	})
 }
 
@@ -204,8 +228,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				}, undefined);
-				popupLog('playback: ' + msg.data.position);
-				chrome.runtime.sendMessage({'type': 'FROM_BG', 'command': 'reloadLog'}, undefined);
+				appendUserLog(['playback: ' + msg.data.position,]);
 
 				sendPlaybackPosition();
 				return;

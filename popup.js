@@ -124,15 +124,15 @@ const renderRoomInfo = _ => {
 
 const appendLog = msg => {
 	// store new log record
-	chrome.storage.local.get('userLog', data => {
-		let logs = data.userLog;
-		if(logs) {
-			logs.push(msg);
-		} else {
-			logs = [msg, ];
-		}
-		chrome.storage.local.set({'userLog': logs}, undefined);
-	})
+	// chrome.storage.local.get('userLog', data => {
+	// 	let logs = data.userLog;
+	// 	if(logs) {
+	// 		logs.push(msg);
+	// 	} else {
+	// 		logs = [msg, ];
+	// 	}
+	// 	chrome.storage.local.set({'userLog': logs}, undefined);
+	// })
 
 	// append log to logDiv
 	const logDiv = document.getElementById('logDiv');
@@ -185,8 +185,10 @@ chrome.runtime.onMessage.addListener(msg => {
 			case 'rerenderView': // BackgoundからLog追加のメッセージを受け取る
 				renderView();
 				break;
-			case 'reloadLog':
-				reloadLogs();
+			case 'appendLog':
+				for(const log of msg.data.logs) {
+					appendLog(log);
+				}
 				break;
 			case 'roomInfo':
 				// openRoom が成功したときにHostViewに移行する
