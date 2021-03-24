@@ -3,6 +3,7 @@ var YoutubeSync = class {
 		this.state = 'OPEN';
 		this.video = document.getElementsByClassName('video-stream html5-main-video')[0];
 		this.adInterrupting = false;
+		this.autoAdSkipIsEnabled = true;
 
 		this.initEventListener();
 
@@ -16,6 +17,9 @@ var YoutubeSync = class {
 
 					if(this.adInterrupting) {
 						this.sendMessage('adInterrupted')
+						if(this.autoAdSkipIsEnabled) {
+							this.autoAdSkip();
+						}
 					}
 				}
 			})
@@ -85,8 +89,25 @@ var YoutubeSync = class {
 	}
 
 	adSkip() {
-		const skipButton = document.getElementsByClassName('ytp-ad-skip-button')[0];
-		skipButton.click();
+		if(this.adInterrupting && this.video.duration) {
+			console.log(`ad was skipped`);
+			this.video.currentTime = this.video.duration;
+			return true;
+		}
+		return false;
+		// const skipButton = document.getElementsByClassName('ytp-ad-skip-button')[0];
+		// skipButton.click();
+	}
+
+	async autoAdSkip() {
+		while(true) {
+			if(!this.adInterrupting) {
+				return;
+			}
+
+			this.adSkip();
+			await this.sleep(1000);
+		}
 	}
 
 	sendPlaybackPosition() {
@@ -110,6 +131,12 @@ var YoutubeSync = class {
 		this.adObserver.disconnect();
 		this.clearEventListener();
 		this.state = 'CLOSED';
+	}
+
+	async sleep(ms) {
+		return new Promise(resolve => {
+			setTimeout(resolve, ms);
+		})
 	}
 }
 
