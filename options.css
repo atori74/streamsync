@@ -1,0 +1,28 @@
+* {
+	font-family: Roboto;
+}
+.kv-list-title {
+	margin-bottom: 8px;
+}
+.kv-list > div {
+	display: table-row;
+	box-shadow: rgb(224, 224, 224) 0px -1px 0px 0px inset;
+}
+.kv-list > div:first-child {
+	box-shadow: rgb(224, 224, 224) 0px -1px 0px 0px inset, rgb(224, 224, 224) 0px -1px 0px 0px;
+}
+.kv-list > div dt {
+	color: rgb(0, 0, 0);
+	font-family: Roboto;
+	width: 140px;
+	padding: 2px 0px;
+	display: table-cell;
+}
+.kv-list > div dd {
+	color: rgba(0, 0, 0, 0.66);
+	font-family: Roboto;
+	padding-left: 24px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	display: table-cell;
+}
