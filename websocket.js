@@ -6,7 +6,7 @@ const handleFrame = async (obj) => {
 				// hoge
 				let roomId = obj.data.roomID;
 				console.log('roomID: ', roomId);
-				chrome.storage.local.set({'roomID': roomId, 'status': 'host'}, undefined);
+				setStorage('session', {'roomID': roomId, 'status': 'host'});
 				rerenderPopup('Successfully opened room: ' + roomId);
 				break;
 			}
@@ -14,7 +14,7 @@ const handleFrame = async (obj) => {
 				const roomID = obj.data.roomID;
 				const mediaURL = obj.data.mediaURL;
 
-				chrome.storage.local.set({
+				setStorage('session', {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
 					'status': 'client',
@@ -28,7 +28,7 @@ const handleFrame = async (obj) => {
 						if(tab.id == _tabId && changeInfo.status == 'complete') {
 							// initContentScript(tab.id);
 							// storageにtargetTabが登録されるまではseekは発生しない
-							chrome.storage.local.set({targetTab: tab.id}, undefined);
+							setStorage('session', {targetTab: tab.id});
 
 							// TODO
 							// tabにイベントハンドラーを追加
@@ -55,7 +55,9 @@ const handleFrame = async (obj) => {
 				let positionToSeek = position;
 
 				// seek playback
-				chrome.storage.local.get(['targetTab'], data => {
+				chrome.storage.local.get('session', s => {
+					const data = s.session;
+
 					// ターゲットを現在のアクティブタブにする
 					// chrome.tabs.query({active: true, currentWindow: true}, tabs => {
 					// 	if (!tabs[0]) {
@@ -101,12 +103,13 @@ const handleFrame = async (obj) => {
 
 const closeConnection = () => {
 	console.log('closeConnection was called')
-	chrome.storage.local.get(['targetTab'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		chrome.tabs.executeScript(
 			data.targetTab,
 			{code: 'syncCtl.release();'}
 		);
 	})
-	chrome.storage.local.clear(undefined);
+	clearStorage('session');
 	rerenderPopup('Connection closed.')
 };

@@ -2,9 +2,7 @@ let isScanning = false;
 let isHost = false;
 let isClient = false;
 let conn;
-
-// const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-const ENDPOINT = 'ws://localhost:8080'
+let ENDPOINT;
 
 
 const sleep = ms => new Promise(resolve => {
@@ -12,14 +10,15 @@ const sleep = ms => new Promise(resolve => {
 });
 
 const rerenderPopup = log => {
-	chrome.storage.local.get(['userLog'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let allLogs = data.userLog;
 		if(allLogs) {
 			allLogs.push(log);
 		} else {
 			allLogs = [log,];
 		}
-		chrome.storage.local.set({'userLog': allLogs}, undefined);
+		setStorage('session', {'userLog': allLogs});
 	})
 
 	chrome.runtime.sendMessage({
@@ -30,14 +29,15 @@ const rerenderPopup = log => {
 }
 
 const appendUserLog = logs => {
-	chrome.storage.local.get(['userLog'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let allLogs = data.userLog;
 		if(allLogs) {
 			allLogs.push(...logs);
 		} else {
 			allLogs = logs
 		}
-		chrome.storage.local.set({'userLog': allLogs}, undefined);
+		setStorage('session', {'userLog': allLogs});
 	})
 
 	chrome.runtime.sendMessage({
@@ -55,7 +55,8 @@ const sendPlaybackPosition = async () => {
 		return;
 	}
 	if(conn.readyState == WebSocket.OPEN) {
-		chrome.storage.local.get(['pbPosition', 'currentTime', 'mediaURL'], data => {
+		chrome.storage.local.get('session', s => {
+			const data = s.session;
 			if(!(data.pbPosition && data.currentTime && data.mediaURL)) {
 				console.log("data in storage is not enough to send PB")
 				return
@@ -85,7 +86,8 @@ const scanCurrentTime = async tabId => {
 	})
 
 	while(true) {
-		chrome.storage.local.get('roomID', data => {
+		chrome.storage.local.get('session', s => {
+			const data = s.session;
 			if(data.roomID) {
 				chrome.tabs.get(tabId, tab => {
 					if(tab.url.match(new RegExp('youtube.com/watch'))) {
@@ -120,8 +122,30 @@ chrome.runtime.onInstalled.addListener(function() {
 		}]);
 	});
 
+	// optionを読込
+	chrome.storage.local.get('env', data => {
+		if(data.env.endpoint == 'localhost') {
+			ENDPOINT = 'ws://localhost:8080'
+		} else {
+			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+		}
+		console.log('ENDPOINT:', ENDPOINT);
+	})
+
+	chrome.storage.local.onChanged.addListener(changes => {
+		const envs = changes.env;
+		if(envs && envs.newValue.endpoint != ENDPOINT) {
+			if(envs.newValue.endpoint == 'localhost') {
+				ENDPOINT = 'ws://localhost:8080'
+			} else {
+				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+			}
+			console.log('ENDPOINT was changed:', ENDPOINT);
+		}
+	})
+
 	// extension読込時はstorageをクリア
-	chrome.storage.local.clear(undefined);
+	clearStorage('session');
 
 	chrome.runtime.onMessage.addListener(msg => {
 		if(msg.type == 'FROM_ACTION') {
@@ -170,7 +194,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					// open時のurlを記録
 					// TODO
 					// 未実装:画面遷移時にはurlを更新する
-					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
+					setStorage('session', {'mediaURL': msg.data.mediaURL});
 				} else {
 					console.log('Your browser does not support WebSockets.');
 				}
@@ -229,10 +253,10 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'playbackPosition') {
 				// content scriptで取得したPBを受けとり、storageに保存
 				console.log(msg.data);
-				chrome.storage.local.set({
+				setStorage('session', {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
-				}, undefined);
+				});
 				appendUserLog(['playback: ' + msg.data.position,]);
 
 				sendPlaybackPosition();

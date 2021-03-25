@@ -3,7 +3,8 @@ window.onload = () => {
 }
 
 const renderView = _ => {
-	chrome.storage.local.get(['status'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		if(data.status == 'host') {
 			// render host view
 			renderHostView();
@@ -112,7 +113,8 @@ const renderDefaultView = _ => {
 }
 
 const renderRoomInfo = _ => {
-	chrome.storage.local.get(['roomID', 'mediaURL'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		if(data.roomID) {
 			document.getElementById('roomId').textContent = data.roomID;
 		}
@@ -150,7 +152,8 @@ const appendLog = msg => {
 const reloadLogs = _ => {
 	const logDiv = document.getElementById('logDiv');
 	while(logDiv.firstChild) { logDiv.removeChild(logDiv.lastChild) };
-	chrome.storage.local.get('userLog', data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let logs = data.userLog;
 		if(logs) {
 			logs.forEach(log => {

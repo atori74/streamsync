@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>streamsync オプション</title>
+		<link rel="stylesheet" type="text/css" href="options.css">
+		<script src="packages/umd.js"></script>
+		<script src="utils.js"></script>
+		<script src="options.js"></script>
+	</head>
+	<body>
+		<div id="content">
+			<div id="options-register-form">
+				<div class="form-stack-header">
+					<div class="form-stack-col">Key</div>
+					<div class="form-stack-col">Value</div>
+				</div>
+				<div class="form-stack-row">
+					<div class="form-stack-input-wrapper">
+						<div class="form-stack-input">
+							<input id="input-key"></input>
+						</div>
+					</div>
+					<div class="form-stack-input-wrapper">
+						<div class="form-stack-input">
+							<input id="input-value"></input>
+						</div>
+					</div>
+				</div>
+				<button id="register-env-var">変数を追加</button>
+			</div>
+			<div id="options-list">
+				<h2 class="kv-list-title">環境変数</h2>
+				<dl class="kv-list">
+					<div>
+						<dt>Mode</dt>
+						<dd>develop</dd>
+						<div class="kv-list-remove-row">
+							<img src="static/delete_black.png" class="remove-img">
+						</div>
+					</div>
+				</dl>
+			</div>
+		</div>
+	</body>
+</html>
