@@ -2,9 +2,7 @@ let isScanning = false;
 let isHost = false;
 let isClient = false;
 let conn;
-
-const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-// const ENDPOINT = 'ws://localhost:8080'
+let ENDPOINT;
 
 
 const sleep = ms => new Promise(resolve => {
@@ -78,6 +76,28 @@ chrome.runtime.onInstalled.addListener(function() {
 			actions: [new chrome.declarativeContent.ShowPageAction()]
 		}]);
 	});
+
+	// optionを読込
+	chrome.storage.local.get('env', data => {
+		if(data.env.endpoint == 'localhost') {
+			ENDPOINT = 'ws://localhost:8080'
+		} else {
+			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+		}
+		console.log('ENDPOINT:', ENDPOINT);
+	})
+
+	chrome.storage.local.onChanged.addListener(changes => {
+		const envs = changes.env;
+		if(envs && envs.newValue.endpoint != ENDPOINT) {
+			if(envs.newValue.endpoint == 'localhost') {
+				ENDPOINT = 'ws://localhost:8080'
+			} else {
+				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+			}
+			console.log('ENDPOINT was changed:', ENDPOINT);
+		}
+	})
 
 	// extension読込時はstorageをクリア
 	clearStorage('session');
