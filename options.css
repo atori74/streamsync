@@ -32,6 +32,8 @@ h2 {
 .kv-list > div dt {
 	color: rgb(0, 0, 0);
 	font-family: Roboto;
+	font-size: 14px;
+	line-height: 28px;
 	width: 140px;
 	padding: 2px 0px;
 	vertical-align: top;
@@ -40,6 +42,8 @@ h2 {
 .kv-list > div dd {
 	color: rgba(0, 0, 0, 0.66);
 	font-family: Roboto;
+	font-size: 14px;
+	line-height: 28px;
 	padding-left: 24px;
 	padding-top: 2px;
 	padding-bottom: 2px;
@@ -49,8 +53,8 @@ h2 {
 .kv-list div.kv-list-remove-row {
 	display: table-cell;
 	padding-left: 34px;
-	padding-top: 2px;
-	padding-bottom: 2px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 }
 .kv-list img.remove-img {
 	padding: 2px;
@@ -101,4 +105,11 @@ h2 {
 	border-radius: 4px;
 	border-width: 1px;
 	line-height: 28px;
+}
+#options-register-form {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+#options-list {
+	margin-top: 32px;
 }
