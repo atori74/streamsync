@@ -93,7 +93,8 @@ const renderDefaultView = _ => {
 }
 
 const renderRoomInfo = _ => {
-	chrome.storage.local.get(['roomID', 'mediaURL'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		if(data.roomID) {
 			document.getElementById('roomId').textContent = data.roomID;
 		}
@@ -104,7 +105,8 @@ const renderRoomInfo = _ => {
 }
 
 window.onload = () => {
-	chrome.storage.local.get(['status'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		if(data.status == 'host') {
 			// render host view
 			renderHostView();
@@ -120,14 +122,15 @@ window.onload = () => {
 
 const appendLog = msg => {
 	// store new log record
-	chrome.storage.local.get('userLog', data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let logs = data.userLog;
 		if(logs) {
 			logs.push(msg);
 		} else {
 			logs = [msg, ];
 		}
-		chrome.storage.local.set({'userLog': logs}, undefined);
+		setStorage('session', {'userLog': logs});
 	})
 
 	// append log to logDiv
@@ -146,7 +149,8 @@ const appendLog = msg => {
 const reloadLogs = _ => {
 	const logDiv = document.getElementById('logDiv');
 	while(logDiv.firstChild) { logDiv.removeChild(logDiv.lastChild) };
-	chrome.storage.local.get('userLog', data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let logs = data.userLog;
 		if(logs) {
 			logs.forEach(log => {
@@ -172,7 +176,7 @@ chrome.runtime.onMessage.addListener(msg => {
 		console.log('from background: ', msg.command)
 		switch(msg.command) {
 			case 'roomInfo':
-				chrome.storage.local.set({'status': 'host'}, undefined);
+				setStorage('session', {'status': 'host'});
 				console.log('room is open: ', msg.data.roomID);
 				// document.getElementById('roomId').textContent = 'room ID: ' + msg.data.roomID;
 
@@ -190,7 +194,7 @@ chrome.runtime.onMessage.addListener(msg => {
 
 				break;
 			case 'joinSuccess':
-				chrome.storage.local.set({'status': 'client'}, undefined);
+				setStorage('session', {'status': 'client'});
 				console.log('client successfully joined the room.');
 				// document.getElementById('log').textContent = 'successfully joined.';
 				// document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
