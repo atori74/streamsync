@@ -1,49 +1,52 @@
+const createKVRow = (_key, _value, hasRemoveBtn) => {
+	const key = document.createElement('dt');
+	key.innerText = _key;
+	const value = document.createElement('dd');
+	value.innerText = _value;
+
+	const row = document.createElement('div');
+	row.appendChild(key);
+	row.appendChild(value);
+
+	if (hasRemoveBtn) {
+		const removeBtn = document.createElement('div');
+		removeBtn.className = 'kv-list-remove-row';
+		const removeImg = document.createElement('img');
+		removeImg.src = '/static/delete_black.png'
+		removeImg.className = 'remove-img'
+		removeBtn.appendChild(removeImg);
+
+		removeBtn.onclick = _ => {
+			chrome.storage.local.get('env', data => {
+				const vars = data.env;
+				delete vars[_key];
+				chrome.storage.local.set({'env': vars}, loadVariables);
+			})
+		}
+
+		row.appendChild(removeBtn);
+	}
+
+	return row;
+}
+
+
 const loadVariables = async _ => {
 	console.log('reloaded')
+
 	const list = document.querySelector('div#options-list > dl.kv-list');
 	while(list.firstChild) { list.removeChild(list.lastChild) };
+
 	chrome.storage.local.get('env', data => {
 		const vars = data.env;
 		console.log(vars)
-		if(Object.keys(vars).length == 0) {
-			const key = document.createElement('dt');
-			key.innerText = 'no variables';
-			const value = document.createElement('dd');
-			value.innerText = '';
-
-			const row = document.createElement('div');
-			row.appendChild(key);
-			row.appendChild(value);
-
+		// 保存されている環境変数が無い場合
+		if(!vars || Object.keys(vars).length == 0) {
+			const row = createKVRow('no variables', '', undefined);
 			list.appendChild(row);
 		}
 		for (const k in vars) {
-			const key = document.createElement('dt');
-			key.innerText = k;
-			const value = document.createElement('dd');
-			value.innerText = vars[k];
-
-			const removeBtn = document.createElement('div');
-			removeBtn.className = 'kv-list-remove-row';
-			const removeImg = document.createElement('img');
-			removeImg.src = '/static/delete_black.png'
-			removeImg.className = 'remove-img'
-			removeBtn.appendChild(removeImg);
-
-			removeBtn.onclick = _ => {
-				chrome.storage.local.get('env', data => {
-					const vars = data.env;
-					delete vars[k];
-					chrome.storage.local.set({'env': vars}, undefined);
-					loadVariables();
-				})
-			}
-
-			const row = document.createElement('div');
-			row.appendChild(key);
-			row.appendChild(value);
-			row.appendChild(removeBtn);
-
+			const row = createKVRow(k, vars[k], true);
 			list.appendChild(row);
 		}
 	})

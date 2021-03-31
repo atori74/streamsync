@@ -4,24 +4,22 @@ const handleFrame = async (obj) => {
 		switch(obj.type) {
 			case 'roomInfo': {
 				// hoge
+				console.log('Received roomInfo from the server.')
 				let roomId = obj.data.roomID;
-				console.log('roomID: ', roomId);
-				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'roomInfo', data: {roomID: roomId}}, undefined);
-				setStorage('session', {'roomID': roomId});
+				await setStorage('session', {'roomID': roomId, 'status': 'host'});
+				rerenderPopup('Successfully opened room: ' + roomId);
 				break;
 			}
 			case 'joinSuccess': {
 				const roomID = obj.data.roomID;
 				const mediaURL = obj.data.mediaURL;
 
-				setStorage('session', {
+				await setStorage('session', {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
-				})
-				chrome.runtime.sendMessage({type: 'FROM_BG', command: 'joinSuccess', data: {
-					'roomID': roomID,
-					'mediaURL': mediaURL,
-				}}, undefined);
+					'status': 'client',
+				}, undefined);
+				rerenderPopup('Successfully joined the room.');
 
 				await sleep(1000)
 
@@ -103,7 +101,7 @@ const handleFrame = async (obj) => {
 	}
 };
 
-const closeConnection = () => {
+const closeConnection = async () => {
 	console.log('closeConnection was called')
 	chrome.storage.local.get('session', s => {
 		const data = s.session;
@@ -112,6 +110,6 @@ const closeConnection = () => {
 			{code: 'syncCtl.release();'}
 		);
 	})
-	clearStorage('session');
-	chrome.runtime.sendMessage({type: 'FROM_BG', command: 'connectionClosed'});
+	await clearStorage('session');
+	rerenderPopup('Connection closed.')
 };
