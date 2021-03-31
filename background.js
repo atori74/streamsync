@@ -144,14 +144,15 @@ chrome.runtime.onInstalled.addListener(function() {
 
 	chrome.storage.local.onChanged.addListener(changes => {
 		const envs = changes.env;
-		console.log(envs);
-		if(envs && envs.newValue && envs.newValue.endpoint != ENDPOINT) {
+		if (envs && envs.newValue && envs.newValue.endpoint) {
 			if(envs.newValue.endpoint == 'localhost') {
 				ENDPOINT = 'ws://localhost:8080'
 			} else {
 				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
 			}
-			console.log('ENDPOINT was changed:', ENDPOINT);
+			console.log('ENDPOINT was set:', ENDPOINT);
+		} else {
+			return;
 		}
 	})
 
