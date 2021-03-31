@@ -144,7 +144,8 @@ chrome.runtime.onInstalled.addListener(function() {
 
 	chrome.storage.local.onChanged.addListener(changes => {
 		const envs = changes.env;
-		if(envs && envs.newValue.endpoint != ENDPOINT) {
+		console.log(envs);
+		if(envs && envs.newValue && envs.newValue.endpoint != ENDPOINT) {
 			if(envs.newValue.endpoint == 'localhost') {
 				ENDPOINT = 'ws://localhost:8080'
 			} else {
