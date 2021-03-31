@@ -4,6 +4,10 @@ const createKVRow = (_key, _value, hasRemoveBtn) => {
 	const value = document.createElement('dd');
 	value.innerText = _value;
 
+	const row = document.createElement('div');
+	row.appendChild(key);
+	row.appendChild(value);
+
 	if (hasRemoveBtn) {
 		const removeBtn = document.createElement('div');
 		removeBtn.className = 'kv-list-remove-row';
@@ -19,12 +23,9 @@ const createKVRow = (_key, _value, hasRemoveBtn) => {
 				chrome.storage.local.set({'env': vars}, loadVariables);
 			})
 		}
-	}
 
-	const row = document.createElement('div');
-	row.appendChild(key);
-	row.appendChild(value);
-	row.appendChild(removeBtn);
+		row.appendChild(removeBtn);
+	}
 
 	return row;
 }
@@ -40,7 +41,7 @@ const loadVariables = async _ => {
 		const vars = data.env;
 		console.log(vars)
 		// 保存されている環境変数が無い場合
-		if(Object.keys(vars).length == 0) {
+		if(!vars || Object.keys(vars).length == 0) {
 			const row = createKVRow('no variables', '', undefined);
 			list.appendChild(row);
 		}
