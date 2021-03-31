@@ -4,9 +4,9 @@ const handleFrame = async (obj) => {
 		switch(obj.type) {
 			case 'roomInfo': {
 				// hoge
+				console.log('Received roomInfo from the server.')
 				let roomId = obj.data.roomID;
-				console.log('roomID: ', roomId);
-				setStorage('session', {'roomID': roomId, 'status': 'host'});
+				await setStorage('session', {'roomID': roomId, 'status': 'host'});
 				rerenderPopup('Successfully opened room: ' + roomId);
 				break;
 			}
@@ -14,7 +14,7 @@ const handleFrame = async (obj) => {
 				const roomID = obj.data.roomID;
 				const mediaURL = obj.data.mediaURL;
 
-				setStorage('session', {
+				await setStorage('session', {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
 					'status': 'client',
@@ -101,7 +101,7 @@ const handleFrame = async (obj) => {
 	}
 };
 
-const closeConnection = () => {
+const closeConnection = async () => {
 	console.log('closeConnection was called')
 	chrome.storage.local.get('session', s => {
 		const data = s.session;
@@ -110,6 +110,6 @@ const closeConnection = () => {
 			{code: 'syncCtl.release();'}
 		);
 	})
-	clearStorage('session');
+	await clearStorage('session');
 	rerenderPopup('Connection closed.')
 };

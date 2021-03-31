@@ -2,6 +2,7 @@ window.onload = () => {
 	renderView();
 }
 
+
 const renderView = _ => {
 	chrome.storage.local.get('session', s => {
 		const data = s.session;
@@ -124,18 +125,8 @@ const renderRoomInfo = _ => {
 	})
 }
 
+// logウィンドウ上に新しいレコードを追加する
 const appendLog = msg => {
-	// store new log record
-	// chrome.storage.local.get('userLog', data => {
-	// 	let logs = data.userLog;
-	// 	if(logs) {
-	// 		logs.push(msg);
-	// 	} else {
-	// 		logs = [msg, ];
-	// 	}
-	// 	chrome.storage.local.set({'userLog': logs}, undefined);
-	// })
-
 	// append log to logDiv
 	const logDiv = document.getElementById('logDiv');
 	const doScroll = logDiv.scrollTop > logDiv.scrollHeight - logDiv.clientHeight - 1;
@@ -149,6 +140,7 @@ const appendLog = msg => {
 	
 }
 
+// storageに保存されているuserLogをログウィンドウに再描画する
 const reloadLogs = _ => {
 	const logDiv = document.getElementById('logDiv');
 	while(logDiv.firstChild) { logDiv.removeChild(logDiv.lastChild) };
@@ -173,9 +165,6 @@ chrome.runtime.onMessage.addListener(msg => {
 	// Logが追加されたタイミングでメッセージを受け取る
 	// その時popupが開かれていれば、eventHandlerが呼ばれるので
 	// appendLogする appendLogする
-	//
-	//
-	//
 	if(msg.type == 'FROM_BG') {
 		console.log('from background: ', msg.command)
 		switch(msg.command) {

@@ -10,7 +10,7 @@ const sleep = ms => new Promise(resolve => {
 });
 
 const rerenderPopup = log => {
-	chrome.storage.local.get('session', s => {
+	chrome.storage.local.get('session', async s => {
 		const data = s.session;
 		let allLogs = data.userLog;
 		if(allLogs) {
@@ -18,21 +18,29 @@ const rerenderPopup = log => {
 		} else {
 			allLogs = [log,];
 		}
-		setStorage('session', {'userLog': allLogs});
-	})
 
-	chrome.runtime.sendMessage({
-		'type': 'FROM_BG',
-		'command': 'rerenderView',
-	})
+		// ログにメッセージをappendした後で、popupをrenderしたいのでawaitをつかう
+		await setStorage('session', {'userLog': allLogs});
 
+		chrome.runtime.sendMessage({
+			'type': 'FROM_BG',
+			'command': 'rerenderView',
+		})
+	})
 }
 
 const appendUserLog = logs => {
+	if(!logs) {
+		return;
+	}
 	chrome.storage.local.get('session', s => {
 		const data = s.session;
 		let allLogs = data.userLog;
-		if(allLogs) {
+		// Logの上限はだいたい1000くらいになるようにする
+		if (allLogs.length > 1000) {
+			allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
+			allLogs.push(...logs);
+		} else if (allLogs) {
 			allLogs.push(...logs);
 		} else {
 			allLogs = logs
@@ -40,6 +48,8 @@ const appendUserLog = logs => {
 		setStorage('session', {'userLog': allLogs});
 	})
 
+	// appendLogメッセージを受け取ったpopup側でstorageを読むわけじゃないので
+	// この場合はsetStorageとsendMessageは非同期で良い
 	chrome.runtime.sendMessage({
 		'type': 'FROM_BG',
 		'command': 'appendLog',
@@ -147,7 +157,7 @@ chrome.runtime.onInstalled.addListener(function() {
 	// extension読込時はstorageをクリア
 	clearStorage('session');
 
-	chrome.runtime.onMessage.addListener(msg => {
+	chrome.runtime.onMessage.addListener(async msg => {
 		if(msg.type == 'FROM_ACTION') {
 			if(msg.command == 'toggleScan') {
 				if(isScanning) {
@@ -194,9 +204,12 @@ chrome.runtime.onInstalled.addListener(function() {
 					// open時のurlを記録
 					// TODO
 					// 未実装:画面遷移時にはurlを更新する
-					setStorage('session', {'mediaURL': msg.data.mediaURL});
+					await setStorage('session', {'mediaURL': msg.data.mediaURL});
+
+					return;
 				} else {
 					console.log('Your browser does not support WebSockets.');
+					return;
 				}
 			}
 			if(msg.command == 'closeRoom') {
@@ -204,7 +217,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					return;
 				}
 				conn.close(1000);
-				isHost = true;
+				// isHost = false;
 			}
 			if(msg.command == 'joinRoom') {
 				if(isHost) {
@@ -243,7 +256,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					return;
 				}
 				conn.close(1000);
-				closeConnection();
+				// closeConnection();
 				isClient = false;
 
 				return;
@@ -253,7 +266,7 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'playbackPosition') {
 				// content scriptで取得したPBを受けとり、storageに保存
 				console.log(msg.data);
-				setStorage('session', {
+				await setStorage('session', {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				});
