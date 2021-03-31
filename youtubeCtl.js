@@ -3,7 +3,14 @@ var YoutubeSync = class {
 		this.state = 'OPEN';
 		this.video = document.getElementsByClassName('video-stream html5-main-video')[0];
 		this.adInterrupting = false;
-		this.autoAdSkipIsEnabled = true;
+
+		this.autoAdSkipIsEnabled = false;
+		chrome.storage.local.get('env', data => {
+			const env = data.env;
+			if(env && env.adSkip == 'true') {
+				this.autoAdSkipIsEnabled = true;
+			}
+		})
 
 		this.initEventListener();
 
@@ -92,11 +99,15 @@ var YoutubeSync = class {
 		if(this.adInterrupting && this.video.duration) {
 			console.log(`ad was skipped`);
 			this.video.currentTime = this.video.duration;
+
+			const skipButtons = document.getElementsByClassName('ytp-ad-skip-button');
+			if (skipButtons.length > 0) {
+				skipButtons[0].click();
+			}
+
 			return true;
 		}
 		return false;
-		// const skipButton = document.getElementsByClassName('ytp-ad-skip-button')[0];
-		// skipButton.click();
 	}
 
 	async autoAdSkip() {
