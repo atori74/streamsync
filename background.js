@@ -134,7 +134,7 @@ chrome.runtime.onInstalled.addListener(function() {
 
 	// optionを読込
 	chrome.storage.local.get('env', data => {
-		if(data.env.endpoint == 'localhost') {
+		if(data.env && data.env.endpoint == 'localhost') {
 			ENDPOINT = 'ws://localhost:8080'
 		} else {
 			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
