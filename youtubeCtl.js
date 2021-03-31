@@ -4,6 +4,14 @@ var YoutubeSync = class {
 		this.video = document.getElementsByClassName('video-stream html5-main-video')[0];
 		this.adInterrupting = false;
 
+		this.autoAdSkipIsEnabled = false;
+		chrome.storage.local.get('env', data => {
+			const env = data.env;
+			if(env && env.adSkip == 'true') {
+				this.autoAdSkipIsEnabled = true;
+			}
+		})
+
 		this.initEventListener();
 
 		// イベントリスナーで監視できないDOMはMutationObserverで
@@ -16,6 +24,9 @@ var YoutubeSync = class {
 
 					if(this.adInterrupting) {
 						this.sendMessage('adInterrupted')
+						if(this.autoAdSkipIsEnabled) {
+							this.autoAdSkip();
+						}
 					}
 				}
 			})
@@ -85,8 +96,29 @@ var YoutubeSync = class {
 	}
 
 	adSkip() {
-		const skipButton = document.getElementsByClassName('ytp-ad-skip-button')[0];
-		skipButton.click();
+		if(this.adInterrupting && this.video.duration) {
+			console.log(`ad was skipped`);
+			this.video.currentTime = this.video.duration;
+
+			const skipButtons = document.getElementsByClassName('ytp-ad-skip-button');
+			if (skipButtons.length > 0) {
+				skipButtons[0].click();
+			}
+
+			return true;
+		}
+		return false;
+	}
+
+	async autoAdSkip() {
+		while(true) {
+			if(!this.adInterrupting) {
+				return;
+			}
+
+			this.adSkip();
+			await this.sleep(1000);
+		}
 	}
 
 	sendPlaybackPosition() {
@@ -110,6 +142,12 @@ var YoutubeSync = class {
 		this.adObserver.disconnect();
 		this.clearEventListener();
 		this.state = 'CLOSED';
+	}
+
+	async sleep(ms) {
+		return new Promise(resolve => {
+			setTimeout(resolve, ms);
+		})
 	}
 }
 
