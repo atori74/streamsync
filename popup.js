@@ -1,3 +1,24 @@
+window.onload = () => {
+	renderView();
+}
+
+
+const renderView = _ => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
+		if(data.status == 'host') {
+			// render host view
+			renderHostView();
+		} else if (data.status == 'client') {
+			// render client view
+			renderClientView();
+		} else {
+			// render default view
+			renderDefaultView();
+		}
+	})
+}
+
 const renderHostView = _ => {
 	// CloseRoom, RoomID, mediaURL
 	// clear main div
@@ -93,7 +114,8 @@ const renderDefaultView = _ => {
 }
 
 const renderRoomInfo = _ => {
-	chrome.storage.local.get(['roomID', 'mediaURL'], data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		if(data.roomID) {
 			document.getElementById('roomId').textContent = data.roomID;
 		}
@@ -103,33 +125,8 @@ const renderRoomInfo = _ => {
 	})
 }
 
-window.onload = () => {
-	chrome.storage.local.get(['status'], data => {
-		if(data.status == 'host') {
-			// render host view
-			renderHostView();
-		} else if (data.status == 'client') {
-			// render client view
-			renderClientView();
-		} else {
-			// render default view
-			renderDefaultView();
-		}
-	})
-}
-
+// logウィンドウ上に新しいレコードを追加する
 const appendLog = msg => {
-	// store new log record
-	chrome.storage.local.get('userLog', data => {
-		let logs = data.userLog;
-		if(logs) {
-			logs.push(msg);
-		} else {
-			logs = [msg, ];
-		}
-		chrome.storage.local.set({'userLog': logs}, undefined);
-	})
-
 	// append log to logDiv
 	const logDiv = document.getElementById('logDiv');
 	const doScroll = logDiv.scrollTop > logDiv.scrollHeight - logDiv.clientHeight - 1;
@@ -143,10 +140,12 @@ const appendLog = msg => {
 	
 }
 
+// storageに保存されているuserLogをログウィンドウに再描画する
 const reloadLogs = _ => {
 	const logDiv = document.getElementById('logDiv');
 	while(logDiv.firstChild) { logDiv.removeChild(logDiv.lastChild) };
-	chrome.storage.local.get('userLog', data => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
 		let logs = data.userLog;
 		if(logs) {
 			logs.forEach(log => {
@@ -162,43 +161,20 @@ const reloadLogs = _ => {
 }
 
 chrome.runtime.onMessage.addListener(msg => {
-	if(msg.type == 'FROM_PAGE') {
-		if(msg.command == 'playbackPosition') {
-			console.log(msg.data)
-			appendLog('playback: ' + msg.data.position);
-		}
-	}
+	// TODO
+	// Logが追加されたタイミングでメッセージを受け取る
+	// その時popupが開かれていれば、eventHandlerが呼ばれるので
+	// appendLogする appendLogする
 	if(msg.type == 'FROM_BG') {
 		console.log('from background: ', msg.command)
 		switch(msg.command) {
-			case 'roomInfo':
-				chrome.storage.local.set({'status': 'host'}, undefined);
-				console.log('room is open: ', msg.data.roomID);
-				// document.getElementById('roomId').textContent = 'room ID: ' + msg.data.roomID;
-
-				renderHostView();
-				appendLog('Successfully opened room: ' + msg.data.roomID);
-
+			case 'rerenderView': // BackgoundからLog追加のメッセージを受け取る
+				renderView();
 				break;
-			case 'connectionClosed':
-				console.log('connection is closed');
-				// document.getElementById('log').textContent = 'connection is closed';
-				// document.getElementById('roomId').textContent = '';
-				// document.getElementById('mediaURL').textContent = '';
-
-				renderDefaultView();
-
-				break;
-			case 'joinSuccess':
-				chrome.storage.local.set({'status': 'client'}, undefined);
-				console.log('client successfully joined the room.');
-				// document.getElementById('log').textContent = 'successfully joined.';
-				// document.getElementById('roomId').textContent = 'room ID(client): ' + msg.data.roomID;
-				// document.getElementById('mediaURL').textContent = 'mediaURL: ' + msg.data.mediaURL;
-
-				renderClientView();
-				appendLog('Successfully joined the room.')
-
+			case 'appendLog':
+				for(const log of msg.data.logs) {
+					appendLog(log);
+				}
 				break;
 		}
 	}

@@ -2,14 +2,62 @@ let isScanning = false;
 let isHost = false;
 let isClient = false;
 let conn;
-
-const ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-// const ENDPOINT = 'ws://localhost:8080'
+let ENDPOINT;
 
 
 const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
+
+const rerenderPopup = log => {
+	chrome.storage.local.get('session', async s => {
+		const data = s.session;
+		let allLogs = data.userLog;
+		if(allLogs) {
+			allLogs.push(log);
+		} else {
+			allLogs = [log,];
+		}
+
+		// ログにメッセージをappendした後で、popupをrenderしたいのでawaitをつかう
+		await setStorage('session', {'userLog': allLogs});
+
+		chrome.runtime.sendMessage({
+			'type': 'FROM_BG',
+			'command': 'rerenderView',
+		})
+	})
+}
+
+const appendUserLog = logs => {
+	if(!logs) {
+		return;
+	}
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
+		let allLogs = data.userLog;
+		// Logの上限はだいたい1000くらいになるようにする
+		if (allLogs.length > 1000) {
+			allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
+			allLogs.push(...logs);
+		} else if (allLogs) {
+			allLogs.push(...logs);
+		} else {
+			allLogs = logs
+		}
+		setStorage('session', {'userLog': allLogs});
+	})
+
+	// appendLogメッセージを受け取ったpopup側でstorageを読むわけじゃないので
+	// この場合はsetStorageとsendMessageは非同期で良い
+	chrome.runtime.sendMessage({
+		'type': 'FROM_BG',
+		'command': 'appendLog',
+		'data': {
+			'logs': logs,
+		},
+	})
+}
 
 const sendPlaybackPosition = async () => {
 	if(conn.readyState == WebSocket.CLOSED) {
@@ -17,7 +65,8 @@ const sendPlaybackPosition = async () => {
 		return;
 	}
 	if(conn.readyState == WebSocket.OPEN) {
-		chrome.storage.local.get(['pbPosition', 'currentTime', 'mediaURL'], data => {
+		chrome.storage.local.get('session', s => {
+			const data = s.session;
 			if(!(data.pbPosition && data.currentTime && data.mediaURL)) {
 				console.log("data in storage is not enough to send PB")
 				return
@@ -47,14 +96,19 @@ const scanCurrentTime = async tabId => {
 	})
 
 	while(true) {
-		chrome.tabs.get(tabId, tab => {
-			if(tab.url.match(new RegExp('youtube.com/watch'))) {
-				chrome.tabs.executeScript(
-					tab.id,
-					{code: 'syncCtl.sendPlaybackPosition();'}
-				);
+		chrome.storage.local.get('session', s => {
+			const data = s.session;
+			if(data.roomID) {
+				chrome.tabs.get(tabId, tab => {
+					if(tab.url.match(new RegExp('youtube.com/watch'))) {
+						chrome.tabs.executeScript(
+							tab.id,
+							{code: 'syncCtl.sendPlaybackPosition();'}
+						);
+					}
+				});
 			}
-		});
+		})
 		// 2秒に1回に変更
 		await sleep(2000);
 		if(!isScanning) {
@@ -78,10 +132,34 @@ chrome.runtime.onInstalled.addListener(function() {
 		}]);
 	});
 
-	// extension読込時はstorageをクリア
-	chrome.storage.local.clear(undefined);
+	// optionを読込
+	chrome.storage.local.get('env', data => {
+		if(data.env && data.env.endpoint == 'localhost') {
+			ENDPOINT = 'ws://localhost:8080'
+		} else {
+			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+		}
+		console.log('ENDPOINT:', ENDPOINT);
+	})
 
-	chrome.runtime.onMessage.addListener(msg => {
+	chrome.storage.local.onChanged.addListener(changes => {
+		const envs = changes.env;
+		if (envs && envs.newValue && envs.newValue.endpoint) {
+			if(envs.newValue.endpoint == 'localhost') {
+				ENDPOINT = 'ws://localhost:8080'
+			} else {
+				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+			}
+			console.log('ENDPOINT was set:', ENDPOINT);
+		} else {
+			return;
+		}
+	})
+
+	// extension読込時はstorageをクリア
+	clearStorage('session');
+
+	chrome.runtime.onMessage.addListener(async msg => {
 		if(msg.type == 'FROM_ACTION') {
 			if(msg.command == 'toggleScan') {
 				if(isScanning) {
@@ -128,10 +206,12 @@ chrome.runtime.onInstalled.addListener(function() {
 					// open時のurlを記録
 					// TODO
 					// 未実装:画面遷移時にはurlを更新する
-					chrome.storage.local.set({'mediaURL': msg.data.mediaURL}, undefined);
-					sendPlaybackPosition(conn);
+					await setStorage('session', {'mediaURL': msg.data.mediaURL});
+
+					return;
 				} else {
 					console.log('Your browser does not support WebSockets.');
+					return;
 				}
 			}
 			if(msg.command == 'closeRoom') {
@@ -139,7 +219,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					return;
 				}
 				conn.close(1000);
-				isHost = true;
+				// isHost = false;
 			}
 			if(msg.command == 'joinRoom') {
 				if(isHost) {
@@ -178,7 +258,7 @@ chrome.runtime.onInstalled.addListener(function() {
 					return;
 				}
 				conn.close(1000);
-				closeConnection();
+				// closeConnection();
 				isClient = false;
 
 				return;
@@ -188,10 +268,11 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'playbackPosition') {
 				// content scriptで取得したPBを受けとり、storageに保存
 				console.log(msg.data);
-				chrome.storage.local.set({
+				await setStorage('session', {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
-				}, undefined);
+				});
+				appendUserLog(['playback: ' + msg.data.position,]);
 
 				sendPlaybackPosition();
 				return;

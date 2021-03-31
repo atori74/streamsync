@@ -1,0 +1,115 @@
+html {
+	box-sizing: border-box;
+	min-height: 500px;
+}
+
+html * {
+	box-sizing: inherit;
+}
+
+body {
+	font-family: Roboto;
+	font-weight: 500;
+}
+h1 {
+	font-size: 20px;
+}
+h2 {
+	font-size: 15px;
+	font-weight: 500;
+}
+.kv-list-title {
+	margin-bottom: 8px;
+
+}
+.kv-list > div {
+	display: table-row;
+	box-shadow: rgb(224, 224, 224) 0px -1px 0px 0px inset;
+}
+.kv-list > div:first-child {
+	box-shadow: rgb(224, 224, 224) 0px -1px 0px 0px inset, rgb(224, 224, 224) 0px -1px 0px 0px;
+}
+.kv-list > div dt {
+	color: rgb(0, 0, 0);
+	font-family: Roboto;
+	font-size: 14px;
+	line-height: 28px;
+	width: 140px;
+	padding: 2px 0px;
+	vertical-align: top;
+	display: table-cell;
+}
+.kv-list > div dd {
+	color: rgba(0, 0, 0, 0.66);
+	font-family: Roboto;
+	font-size: 14px;
+	line-height: 28px;
+	padding-left: 24px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	vertical-align: top;
+	display: table-cell;
+}
+.kv-list div.kv-list-remove-row {
+	display: table-cell;
+	padding-left: 34px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+.kv-list img.remove-img {
+	padding: 2px;
+	height: 24px;
+	width: 24px;
+	border-radius: 10px;
+	transition: background-color 0.2s;
+}
+.kv-list img.remove-img:hover {
+	background-color: rgba(0, 0, 0, 0.5);
+}
+.form-stack-header {
+	display: table-header-group;
+}
+.form-stack-col {
+	width: 200px;
+	display: table-cell;
+	padding-right: 16px;
+	font-size: 14px;
+}
+.form-stack-row {
+	display: table-row;
+}
+.form-stack-input-wrapper {
+	font-size: 100%;
+	display: table-cell;
+	padding-top: 0.75em;
+	padding-bottom: 0.75em;
+	padding-right: 16px;
+	vertical-align: top;
+}
+.form-stack-input {
+	border-color: rgba(0, 0, 0, 0.4);
+	border-style: solid;
+	border-width: thin;
+	border-radius: 3px;
+	padding: 4px 9.75px 4px;
+}
+.form-stack-input input {
+	border: none;
+	outline: none;
+}
+#register-env-var {
+	min-width: auto;
+	padding: 0px 12px;
+	background-color: rgb(51, 103, 214);
+	color: white;
+	border-radius: 4px;
+	border-width: 1px;
+	line-height: 28px;
+}
+#options-register-form {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+#options-list {
+	margin-top: 32px;
+}
