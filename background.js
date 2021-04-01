@@ -170,25 +170,25 @@ chrome.runtime.onInstalled.addListener(function() {
 
 	// optionを読込
 	chrome.storage.local.get('env', data => {
-		if(data.env && data.env.endpoint == 'localhost') {
-			ENDPOINT = 'ws://localhost:8080'
+		if(data.env && data.env.endpoint) {
+			ENDPOINT = data.env.endpoint;
 		} else {
-			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app';
 		}
 		console.log('ENDPOINT:', ENDPOINT);
 	})
 
 	chrome.storage.local.onChanged.addListener(changes => {
-		const envs = changes.env;
-		if (envs && envs.newValue && envs.newValue.endpoint) {
-			if(envs.newValue.endpoint == 'localhost') {
-				ENDPOINT = 'ws://localhost:8080'
-			} else {
-				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-			}
-			console.log('ENDPOINT was set:', ENDPOINT);
-		} else {
-			return;
+		if (changes.env) {
+			chrome.storage.local.get('env', data => {
+				const envs = data.env;
+				if (envs.endpoint) {
+					ENDPOINT = envs.endpoint;
+				} else {
+					ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app';
+				}
+				console.log('ENDPOINT:', ENDPOINT);
+			})
 		}
 	})
 
