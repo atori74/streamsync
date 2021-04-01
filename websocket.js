@@ -94,9 +94,55 @@ const handleFrame = async (obj) => {
 		}
 	}
 	if(obj.from == 'host') {
-		switch(obj.type) {
-			default:
-				// hoge
+		if(obj.type == 'command') {
+			switch(obj.data.command) {
+				case 'pause': {
+					console.log('Received pause message')
+					const mediaURL = obj.data.mediaURL;
+					const position = obj.data.position;
+
+					chrome.storage.local.get('session', data => {
+						const s = data.session;
+						if(!s.targetTab) {
+							return;
+						}
+						chrome.tabs.get(s.targetTab, tab => {
+							if(tab.url == mediaURL) {
+								chrome.tabs.executeScript(
+									data.targetTab,
+									{code: `syncCtl.pause(); syncCtl.sync(${position});`}
+								);
+							} else {
+								console.log("Host's media is not been played in target tab.")
+							}
+						})
+					})
+
+					break;
+				}
+				case 'play': {
+					console.log('Received play message')
+					chrome.storage.local.get('session', data => {
+						const s = data.session;
+						if(!s.targetTab) {
+							return;
+						}
+						chrome.tabs.get(s.targetTab, tab => {
+							if(tab.url == mediaURL) {
+								chrome.tabs.executeScript(
+									data.targetTab,
+									{code: `syncCtl.play();`}
+								);
+							} else {
+								console.log("Host's media is not been played in target tab.")
+							}
+						})
+					})
+
+					break;
+				}
+			}
+			return;
 		}
 	}
 };

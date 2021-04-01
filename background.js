@@ -85,6 +85,42 @@ const sendPlaybackPosition = async () => {
 	}
 }
 
+const sendPauseCommand = async data => {
+	if(conn.readyState == WebSocket.CLOSED) {
+		console.log("sendPausedEvent: conn closed")
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'command',
+			'data': {
+				'command': 'pause',
+				'position': data.position,
+				'mediaURL': data.mediaURL,
+			},
+		}))
+		console.log('sent pause command to server')
+	}
+}
+
+const sendPlayCommand = async _ => {
+	if(conn.readyState == WebSocket.CLOSED) {
+		console.log("sendPlayedEvent: conn closed")
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'command',
+			'data': {
+				'command': 'play',
+			},
+		}))
+		console.log('sent play command to server')
+	}
+}
+
 const scanCurrentTime = async tabId => {
 	chrome.tabs.onRemoved.addListener((id, removeInfo) => {
 		if(tabId == id) {
@@ -281,10 +317,26 @@ chrome.runtime.onInstalled.addListener(function() {
 			// content scriptで動画の状態を監視、statusの変化を受け取る
 			if(msg.command == 'played') {
 				console.log('EVENT: played');
+				// TODO: mediaURLと一致している場合のみ送る
+				chrome.storage.local.get('session', data => {
+					const s = data.session;
+					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
+						appendUserLog(['Video is playing.',]);
+						sendPlayCommand();
+					}
+				})
 				return;
 			}
 			if(msg.command == 'paused') {
 				console.log('EVENT: paused');
+				// TODO: mediaURLと一致している場合のみ送る
+				chrome.storage.local.get('session', data => {
+					const s = data.session;
+					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
+						appendUserLog(['Video was paused.',]);
+						sendPauseCommand(msg.data);
+					}
+				})
 				return;
 			}
 			if(msg.command == 'seeked') {
