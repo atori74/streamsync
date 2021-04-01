@@ -124,11 +124,11 @@ const handleFrame = async (obj) => {
 					console.log('Received play message')
 					chrome.storage.local.get('session', data => {
 						const s = data.session;
-						if(!s.targetTab) {
+						if(!s.targetTab || !s.mediaURL) {
 							return;
 						}
 						chrome.tabs.get(s.targetTab, tab => {
-							if(tab.url == mediaURL) {
+							if(tab.url == s.mediaURL) {
 								chrome.tabs.executeScript(
 									data.targetTab,
 									{code: `syncCtl.play();`}
