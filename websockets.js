@@ -1,18 +1,18 @@
-const handleFrame = async (obj) => {
+const handleFrame = async (frame) => {
 	// hoge
-	if(obj.from == 'server') {
-		switch(obj.type) {
+	if(frame.from == 'server') {
+		switch(frame.type) {
 			case 'roomInfo': {
 				// hoge
 				console.log('Received roomInfo from the server.')
-				let roomId = obj.data.roomID;
+				let roomId = frame.data.roomID;
 				await setStorage('session', {'roomID': roomId, 'status': 'host'});
 				rerenderPopup('Successfully opened room: ' + roomId);
 				break;
 			}
 			case 'joinSuccess': {
-				const roomID = obj.data.roomID;
-				const mediaURL = obj.data.mediaURL;
+				const roomID = frame.data.roomID;
+				const mediaURL = frame.data.mediaURL;
 
 				await setStorage('session', {
 					'roomID': roomID,
@@ -41,9 +41,9 @@ const handleFrame = async (obj) => {
 				break;
 			}
 			case 'playbackPosition': {
-				const position = obj.data.position;
-				const recordedAt = Date.parse(obj.data.currentTime);
-				const mediaURL = obj.data.mediaURL;
+				const position = frame.data.position;
+				const recordedAt = Date.parse(frame.data.currentTime);
+				const mediaURL = frame.data.mediaURL;
 
 				// 通信にかかったラグの分、seekする時間を後ろ倒す
 				const deltaMilli = Date.now() - recordedAt;
@@ -93,10 +93,40 @@ const handleFrame = async (obj) => {
 			}
 		}
 	}
-	if(obj.from == 'host') {
-		switch(obj.type) {
-			default:
-				// hoge
+	if(frame.from == 'host') {
+		if(frame.type == 'command') {
+			switch(frame.data.command) {
+				case 'pause': {
+					console.log('Received pause message')
+					const position = frame.data.position;
+
+					const [targetTab, err] = await getStorage(['session', 'targetTab']);
+					if(err || !targetTab) {
+						return;
+					}
+					chrome.tabs.executeScript(
+						targetTab,
+						{code: `syncCtl.pause(); syncCtl.sync(${position});`}
+					);
+
+					break;
+				}
+				case 'play': {
+					console.log('Received play message')
+
+					const [targetTab, err] = await getStorage(['session', 'targetTab']);
+					if(err || !targetTab) {
+						return;
+					}
+					chrome.tabs.executeScript(
+						targetTab,
+						{code: `syncCtl.play();`}
+					);
+
+					break;
+				}
+			}
+			return;
 		}
 	}
 };

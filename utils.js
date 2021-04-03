@@ -21,3 +21,21 @@ const clearStorage = async key => {
 	})
 }
 
+
+// return (value, error)
+const getStorage = async (keys) => {
+	return new Promise(resolve => {
+		try {
+			if(!keys) {
+				resolve([undefined, new Error('keys are empty')]);
+			}
+			chrome.storage.local.get(data => {
+				const result = keys.reduce((acc, key) => acc[key], data)
+				resolve([result, undefined]);
+			})
+		} catch(err) {
+			resolve([undefined, err])
+		}
+	})
+}
+

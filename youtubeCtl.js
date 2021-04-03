@@ -3,6 +3,7 @@ var YoutubeSync = class {
 		this.state = 'OPEN';
 		this.video = document.getElementsByClassName('video-stream html5-main-video')[0];
 		this.adInterrupting = false;
+		this.isPaused = false;
 
 		this.autoAdSkipIsEnabled = false;
 		chrome.storage.local.get('env', data => {
@@ -20,14 +21,21 @@ var YoutubeSync = class {
 				// 広告検知
 				const _adInterrupting = m.target.classList.contains('ad-interrupting')
 				if(this.adInterrupting != _adInterrupting) {
+					// 広告が流れ始めた、または終了した状態
 					this.adInterrupting = _adInterrupting;
 
 					if(this.adInterrupting) {
-						this.sendMessage('adInterrupted')
+						// 広告が流れ始めた
+						this.sendMessage('adInterrupted');
+						this.sendMessage('paused');
 						if(this.autoAdSkipIsEnabled) {
 							this.autoAdSkip();
 						}
+					} else {
+						// 広告が終了した
+						this.sendMessage('played');
 					}
+
 				}
 			})
 		});
@@ -39,13 +47,16 @@ var YoutubeSync = class {
 	initEventListener() {
 		// Arrow Function では定義時点のthisが保存されるのでthisを別名変数にする必要なし
 		this.playedHandler = _ => {
-			this.sendMessage('played')
+			if (this.isPaused) {
+				this.isPaused = false;
+				this.sendMessage('played');
+			}
 		};
 		this.pausedHandler = _ => {
-			this.sendMessage('paused')
+			return;
 		};
 		this.seekedHandler = _ => {
-			this.sendMessage('seeked')
+			return;
 		};
 
 		this.video.addEventListener('play', this.playedHandler);
@@ -89,6 +100,9 @@ var YoutubeSync = class {
 	}
 
 	sync(position) {
+		if (this.adInterrupting) {
+			return;
+		}
 		const delta = this.video.currentTime - position;
 		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
@@ -122,19 +136,27 @@ var YoutubeSync = class {
 	}
 
 	sendPlaybackPosition() {
+		// すでにpause状態または広告が流れている場合はスキップ
+		if (this.isPaused || this.adInterrupting) {
+			return;
+		}
+		// pauseを検知した場合はpauseコマンドをclientsに送信
+		if (!this.isPaused && this.video.paused) {
+			this.isPaused = true;
+			this.sendMessage('paused');
+		}
 		this.sendMessage('playbackPosition');
 	}
 
 	sendMessage(command) {
-		// console.log({
-		// 	type: 'FROM_PAGE',
-		// 	command: command,
-		// 	data: {position: this.video.currentTime, currentTime: (new Date()).toISOString()}
-		// })
 		chrome.runtime.sendMessage({
 			type: 'FROM_PAGE',
 			command: command,
-			data: {position: this.video.currentTime, currentTime: (new Date()).toISOString()}
+			data: {
+				position: this.video.currentTime,
+				currentTime: (new Date()).toISOString(),
+				mediaURL: document.URL,
+			},
 		}, undefined);
 	}
 

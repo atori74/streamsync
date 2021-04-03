@@ -37,13 +37,13 @@ const appendUserLog = logs => {
 		const data = s.session;
 		let allLogs = data.userLog;
 		// Logの上限はだいたい1000くらいになるようにする
-		if (allLogs.length > 1000) {
+		if (!allLogs) {
+			allLogs = logs
+		} else if (allLogs.length > 1000) {
 			allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
 			allLogs.push(...logs);
-		} else if (allLogs) {
-			allLogs.push(...logs);
 		} else {
-			allLogs = logs
+			allLogs.push(...logs);
 		}
 		setStorage('session', {'userLog': allLogs});
 	})
@@ -82,6 +82,42 @@ const sendPlaybackPosition = async () => {
 			}));
 		});
 		console.log('sent playback position to server')
+	}
+}
+
+const sendPauseCommand = async data => {
+	if(conn.readyState == WebSocket.CLOSED) {
+		console.log("sendPausedEvent: conn closed")
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'command',
+			'data': {
+				'command': 'pause',
+				'position': data.position,
+				'mediaURL': data.mediaURL,
+			},
+		}))
+		console.log('sent pause command to server')
+	}
+}
+
+const sendPlayCommand = async _ => {
+	if(conn.readyState == WebSocket.CLOSED) {
+		console.log("sendPlayedEvent: conn closed")
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'command',
+			'data': {
+				'command': 'play',
+			},
+		}))
+		console.log('sent play command to server')
 	}
 }
 
@@ -134,25 +170,25 @@ chrome.runtime.onInstalled.addListener(function() {
 
 	// optionを読込
 	chrome.storage.local.get('env', data => {
-		if(data.env && data.env.endpoint == 'localhost') {
-			ENDPOINT = 'ws://localhost:8080'
+		if(data.env && data.env.endpoint) {
+			ENDPOINT = data.env.endpoint;
 		} else {
-			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
+			ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app';
 		}
 		console.log('ENDPOINT:', ENDPOINT);
 	})
 
 	chrome.storage.local.onChanged.addListener(changes => {
-		const envs = changes.env;
-		if (envs && envs.newValue && envs.newValue.endpoint) {
-			if(envs.newValue.endpoint == 'localhost') {
-				ENDPOINT = 'ws://localhost:8080'
-			} else {
-				ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app'
-			}
-			console.log('ENDPOINT was set:', ENDPOINT);
-		} else {
-			return;
+		if (changes.env) {
+			chrome.storage.local.get('env', data => {
+				const envs = data.env;
+				if (envs.endpoint) {
+					ENDPOINT = envs.endpoint;
+				} else {
+					ENDPOINT = 'wss://streamsync-server-zbj3ibou4q-an.a.run.app';
+				}
+				console.log('ENDPOINT:', ENDPOINT);
+			})
 		}
 	})
 
@@ -180,6 +216,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				
 				// send openRoom command to server
 				if(window['WebSocket']) {
+					// await appendUserLog(['Now opening the room.',]);
 					conn = new WebSocket(ENDPOINT + '/new');
 					isHost = true;
 					conn.onclose = () => {
@@ -232,6 +269,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				}
 				let roomID = msg.data.roomID;
 
+				// await appendUserLog(['Now joining the room.']);
 				conn = new WebSocket(ENDPOINT + '/join/' + roomID);
 				isClient = true;
 
@@ -281,10 +319,26 @@ chrome.runtime.onInstalled.addListener(function() {
 			// content scriptで動画の状態を監視、statusの変化を受け取る
 			if(msg.command == 'played') {
 				console.log('EVENT: played');
+				// TODO: mediaURLと一致している場合のみ送る
+				chrome.storage.local.get('session', async data => {
+					const s = data.session;
+					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
+						appendUserLog(['Video is playing.',]);
+						sendPlayCommand();
+					}
+				})
 				return;
 			}
 			if(msg.command == 'paused') {
 				console.log('EVENT: paused');
+				// TODO: mediaURLと一致している場合のみ送る
+				chrome.storage.local.get('session', async data => {
+					const s = data.session;
+					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
+						appendUserLog(['Video was paused.',]);
+						sendPauseCommand(msg.data);
+					}
+				})
 				return;
 			}
 			if(msg.command == 'seeked') {
