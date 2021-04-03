@@ -37,13 +37,13 @@ const appendUserLog = logs => {
 		const data = s.session;
 		let allLogs = data.userLog;
 		// Logの上限はだいたい1000くらいになるようにする
-		if (allLogs.length > 1000) {
+		if (!allLogs) {
+			allLogs = logs
+		} else if (allLogs.length > 1000) {
 			allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
 			allLogs.push(...logs);
-		} else if (allLogs) {
-			allLogs.push(...logs);
 		} else {
-			allLogs = logs
+			allLogs.push(...logs);
 		}
 		setStorage('session', {'userLog': allLogs});
 	})
@@ -216,7 +216,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				
 				// send openRoom command to server
 				if(window['WebSocket']) {
-					await appendUserLog(['Now opening the room.',]);
+					// await appendUserLog(['Now opening the room.',]);
 					conn = new WebSocket(ENDPOINT + '/new');
 					isHost = true;
 					conn.onclose = () => {
@@ -269,7 +269,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				}
 				let roomID = msg.data.roomID;
 
-				await appendUserLog(['Now joining the room.']);
+				// await appendUserLog(['Now joining the room.']);
 				conn = new WebSocket(ENDPOINT + '/join/' + roomID);
 				isClient = true;
 
@@ -320,7 +320,7 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'played') {
 				console.log('EVENT: played');
 				// TODO: mediaURLと一致している場合のみ送る
-				chrome.storage.local.get('session', data => {
+				chrome.storage.local.get('session', async data => {
 					const s = data.session;
 					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
 						appendUserLog(['Video is playing.',]);
@@ -332,7 +332,7 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'paused') {
 				console.log('EVENT: paused');
 				// TODO: mediaURLと一致している場合のみ送る
-				chrome.storage.local.get('session', data => {
+				chrome.storage.local.get('session', async data => {
 					const s = data.session;
 					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
 						appendUserLog(['Video was paused.',]);
