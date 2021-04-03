@@ -149,11 +149,6 @@ var YoutubeSync = class {
 	}
 
 	sendMessage(command) {
-		// console.log({
-		// 	type: 'FROM_PAGE',
-		// 	command: command,
-		// 	data: {position: this.video.currentTime, currentTime: (new Date()).toISOString()}
-		// })
 		chrome.runtime.sendMessage({
 			type: 'FROM_PAGE',
 			command: command,
