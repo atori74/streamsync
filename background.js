@@ -216,6 +216,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				
 				// send openRoom command to server
 				if(window['WebSocket']) {
+					await appendUserLog(['Now opening the room.',]);
 					conn = new WebSocket(ENDPOINT + '/new');
 					isHost = true;
 					conn.onclose = () => {
@@ -268,6 +269,7 @@ chrome.runtime.onInstalled.addListener(function() {
 				}
 				let roomID = msg.data.roomID;
 
+				await appendUserLog(['Now joining the room.']);
 				conn = new WebSocket(ENDPOINT + '/join/' + roomID);
 				isClient = true;
 
