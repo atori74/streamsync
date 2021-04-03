@@ -1,9 +1,10 @@
 # streamsync
 
 StreamSyncはブラウザ間でストリーミング動画の再生タイミングを同期するためのGoogle Chrome拡張機能です。  
+※現在のところYoutubeのみに対応。将来的にNetflix, Prime videoなど...
 
-StreamSync is a google chrome extension that enables to sync playback position between Host and Client (different browsers).
-
+StreamSync is a google chrome extension that enables to sync playback position between Host and Client (different browsers).  
+※Now Youtube is supported. It is considered to support other platforms such as Netflix and Prime video in future.
 
 **現在開発中・・・**  
 **This have not been released yet. Now developing prototype.**
@@ -39,11 +40,11 @@ Hostは視聴中の動画の再生地点を定期的にRoomに配信します。
 
 Host-Client間はサーバーを経由してWebsocketsで通信します。
 
-Host can open a room and Client can join it. Host send playback position data of video or streaming playing in browser to the room. Clients in the same room receive the data and automatically sync the playback position of video or streaming.
+Host can open a room and Clients can join it. Host sends playback position data of video or streaming playing in browser to the room. Clients in the same room receive the data and automatically sync the playback position of video or streaming.
 
-Host and Client have websocket connection with server as long as they are in the room.
+Host and Client have each Websockets connection with server as long as they are in the room.
 
 ### Related Repository
 
 **[atori74/streamsync-server](https://github.com/atori74/streamsync-server)**  
-websocket server for streamsync, that communicate with Hosts and Clients
+Websockets server for streamsync, that communicates with Hosts and Clients
