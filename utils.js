@@ -2,6 +2,7 @@ const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
 
 const setStorage = async (key, obj) => {
 	// storage.getおよびsetを同期的に処理するためPromiseでラップする
+	const release = await sMutex.acquire();
 	return new Promise(resolve => {
 		chrome.storage.local.get(key, data => {
 			let src = data[key];
@@ -10,20 +11,28 @@ const setStorage = async (key, obj) => {
 			toSet[key] = result;
 			chrome.storage.local.set(toSet, resolve);
 		})
+	}).then(value => {
+		release();
+		return value;
 	})
 }
 
 const clearStorage = async key => {
+	const release = await sMutex.acquire();
 	return new Promise(resolve => {
 		const toSet = {};
 		toSet[key] = {};
 		chrome.storage.local.set(toSet, resolve);
+	}).then(value => {
+		release();
+		return value;
 	})
 }
 
 
 // return (value, error)
 const getStorage = async (keys) => {
+	const release = await sMutex.acquire();
 	return new Promise(resolve => {
 		try {
 			if(!keys) {
@@ -34,8 +43,11 @@ const getStorage = async (keys) => {
 				resolve([result, undefined]);
 			})
 		} catch(err) {
-			resolve([undefined, err])
+			resolve([undefined, err]);
 		}
+	}).then(value => {
+		release();
+		return value;
 	})
 }
 
@@ -82,7 +94,7 @@ class Semaphore {
 					}
 				});
 			};
-			this.tasks.push(taks);
+			this.tasks.push(task);
 			setTimeout(this.sched.bind(this), 0);
 		})
 	}
