@@ -101,7 +101,7 @@ const handleFrame = async (frame) => {
 					const position = frame.data.position;
 
 					const [targetTab, err] = await getStorage(['session', 'targetTab']);
-					if(err || !session.targetTab) {
+					if(err || !targetTab) {
 						return;
 					}
 					chrome.tabs.executeScript(
