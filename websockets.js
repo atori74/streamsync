@@ -6,7 +6,9 @@ const handleFrame = async (frame) => {
 				// hoge
 				console.log('Received roomInfo from the server.')
 				let roomId = frame.data.roomID;
+				const release = await sMutex.acquire();
 				await setStorage('session', {'roomID': roomId, 'status': 'host'});
+				release();
 				rerenderPopup('Successfully opened room: ' + roomId);
 				break;
 			}
@@ -14,11 +16,13 @@ const handleFrame = async (frame) => {
 				const roomID = frame.data.roomID;
 				const mediaURL = frame.data.mediaURL;
 
+				const release = await sMutex.acquire();
 				await setStorage('session', {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
 					'status': 'client',
 				}, undefined);
+				release();
 				rerenderPopup('Successfully joined the room.');
 
 				await sleep(1000)
@@ -28,7 +32,9 @@ const handleFrame = async (frame) => {
 						if(tab.id == _tabId && changeInfo.status == 'complete') {
 							// initContentScript(tab.id);
 							// storageにtargetTabが登録されるまではseekは発生しない
-							setStorage('session', {targetTab: tab.id});
+							const release = await sMutex.acquire();
+							await setStorage('session', {targetTab: tab.id});
+							release();
 
 							// TODO
 							// tabにイベントハンドラーを追加
@@ -55,40 +61,45 @@ const handleFrame = async (frame) => {
 				let positionToSeek = position;
 
 				// seek playback
-				chrome.storage.local.get('session', s => {
-					const data = s.session;
+				const release = await sMutex.acquire();
+				let [targetTab, err] = await getStorage(['session', 'targetTab']);
+				release();
+				if(err != undefined) {
+					console.log(err);
+					return;
+				}
 
-					// ターゲットを現在のアクティブタブにする
-					// chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-					// 	if (!tabs[0]) {
-					// 		console.log('no tab in window');
-					// 		return;
-					// 	}
-					// 	if(tabs[0].url == mediaURL && tabs[0].id == data.targetTab) {
-					// 		chrome.tabs.executeScript(
-					// 			tabs[0].id,
-					// 			{code: `syncCtl.sync(${positionToSeek})`}
-					// 		);
-					// 	} else {
-					// 		console.log("Host's media is not been played in active tab.")
-					// 	}
-					// });
+				// ターゲットを現在のアクティブタブにする
+				// chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+				// 	if (!tabs[0]) {
+				// 		console.log('no tab in window');
+				// 		return;
+				// 	}
+				// 	if(tabs[0].url == mediaURL && tabs[0].id == data.targetTab) {
+				// 		chrome.tabs.executeScript(
+				// 			tabs[0].id,
+				// 			{code: `syncCtl.sync(${positionToSeek})`}
+				// 		);
+				// 	} else {
+				// 		console.log("Host's media is not been played in active tab.")
+				// 	}
+				// });
 
-					// ターゲットをjoinRoomしたときのタブにする
-					if(!data.targetTab) {
-						return;
+				// ターゲットをjoinRoomしたときのタブにする
+				if(!targetTab) {
+					return;
+				}
+				chrome.tabs.get(targetTab, tab => {
+					if(tab.url == mediaURL) {
+						chrome.tabs.executeScript(
+							targetTab,
+							{code: `syncCtl.sync(${positionToSeek})`}
+						);
+					} else {
+						console.log("Host's media is not been played in target tab.")
 					}
-					chrome.tabs.get(data.targetTab, tab => {
-						if(tab.url == mediaURL) {
-							chrome.tabs.executeScript(
-								data.targetTab,
-								{code: `syncCtl.sync(${positionToSeek})`}
-							);
-						} else {
-							console.log("Host's media is not been played in target tab.")
-						}
-					});
-				})
+				});
+
 				break;
 			}
 		}
@@ -100,7 +111,9 @@ const handleFrame = async (frame) => {
 					console.log('Received pause message')
 					const position = frame.data.position;
 
+					const release = await sMutex.acquire();
 					const [targetTab, err] = await getStorage(['session', 'targetTab']);
+					release();
 					if(err || !targetTab) {
 						return;
 					}
@@ -114,7 +127,9 @@ const handleFrame = async (frame) => {
 				case 'play': {
 					console.log('Received play message')
 
+					const release = await sMutex.acquire();
 					const [targetTab, err] = await getStorage(['session', 'targetTab']);
+					release();
 					if(err || !targetTab) {
 						return;
 					}
@@ -133,13 +148,20 @@ const handleFrame = async (frame) => {
 
 const closeConnection = async () => {
 	console.log('closeConnection was called')
-	chrome.storage.local.get('session', s => {
-		const data = s.session;
-		chrome.tabs.executeScript(
-			data.targetTab,
-			{code: 'syncCtl.release();'}
-		);
-	})
+
+	let release = await sMutex.acquire();
+	const [targetTab, err] = await getStorage(['session', 'targetTab']);
+	release();
+	if(err != undefined) {
+		console.log(err);
+		return;
+	}
+	chrome.tabs.executeScript(
+		targetTab,
+		{code: 'syncCtl.release();'}
+	);
+	release = await sMutex.acquire();
 	await clearStorage('session');
+	release();
 	rerenderPopup('Connection closed.')
 };

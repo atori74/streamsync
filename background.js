@@ -10,47 +10,53 @@ const sleep = ms => new Promise(resolve => {
 	setTimeout(resolve, ms);
 });
 
-const rerenderPopup = log => {
-	chrome.storage.local.get('session', async s => {
-		const data = s.session;
-		let allLogs = data.userLog;
-		if(allLogs) {
-			allLogs.push(log);
-		} else {
-			allLogs = [log,];
-		}
+const rerenderPopup = async log => {
+	const release = await sMutex.acquire();
+	let [allLogs, err] = await getStorage(['session', 'userLog']);
+	if(err != undefined) {
+		console.log(err)
+		return;
+	}
+	if(allLogs) {
+		allLogs.push(log);
+	} else {
+		allLogs = [log,];
+	}
 
-		// ログにメッセージをappendした後で、popupをrenderしたいのでawaitをつかう
-		await setStorage('session', {'userLog': allLogs});
+	// ログにメッセージをappendした後で、popupをrenderしたいのでawaitをつかう
+	await setStorage('session', {'userLog': allLogs});
+	release();
 
-		chrome.runtime.sendMessage({
-			'type': 'FROM_BG',
-			'command': 'rerenderView',
-		})
+	chrome.runtime.sendMessage({
+		'type': 'FROM_BG',
+		'command': 'rerenderView',
 	})
 }
 
-const appendUserLog = logs => {
+const appendUserLog = async logs => {
 	if(!logs) {
 		return;
 	}
-	chrome.storage.local.get('session', s => {
-		const data = s.session;
-		let allLogs = data.userLog;
-		// Logの上限はだいたい1000くらいになるようにする
-		if (!allLogs) {
-			allLogs = logs
-		} else if (allLogs.length > 1000) {
-			allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
-			allLogs.push(...logs);
-		} else {
-			allLogs.push(...logs);
-		}
-		setStorage('session', {'userLog': allLogs});
-	})
+	const release = await sMutex.acquire();
+	let [allLogs, err] = await getStorage(['session', 'userLog']);
+	if(err != undefined) {
+		console.log(err)
+		return;
+	}
 
-	// appendLogメッセージを受け取ったpopup側でstorageを読むわけじゃないので
-	// この場合はsetStorageとsendMessageは非同期で良い
+	// Logの上限はだいたい1000くらいになるようにする
+	if (!allLogs) {
+		allLogs = logs
+	} else if (allLogs.length > 1000) {
+		allLogs = allLogs.slice(allLogs.length - 1000 + logs.length);
+		allLogs.push(...logs);
+	} else {
+		allLogs.push(...logs);
+	}
+
+	await setStorage('session', {'userLog': allLogs});
+	release();
+
 	chrome.runtime.sendMessage({
 		'type': 'FROM_BG',
 		'command': 'appendLog',
@@ -66,23 +72,25 @@ const sendPlaybackPosition = async () => {
 		return;
 	}
 	if(conn.readyState == WebSocket.OPEN) {
-		chrome.storage.local.get('session', s => {
-			const data = s.session;
-			if(!(data.pbPosition && data.currentTime && data.mediaURL)) {
-				console.log("data in storage is not enough to send PB")
-				return
+		let [session, err] = await getStorage(['session']);
+		if(err != undefined) {
+			console.log(err);
+			return;
+		}
+		if(!(session.pbPosition && session.currentTime && session.mediaURL)) {
+			console.log("data in storage is not enough to send PB");
+			return;
+		}
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'playbackPosition',
+			'data': {
+				'position': session.pbPosition,
+				'currentTime': session.currentTime,
+				'mediaURL': session.mediaURL,
 			}
-			conn.send(JSON.stringify({
-				'from': 'host',
-				'type': 'playbackPosition',
-				'data': {
-					'position': data.pbPosition,
-					'currentTime': data.currentTime,
-					'mediaURL': data.mediaURL,
-				}
-			}));
-		});
-		console.log('sent playback position to server')
+		}));
+		console.log('sent playback position to server');
 	}
 }
 
@@ -100,8 +108,8 @@ const sendPauseCommand = async data => {
 				'position': data.position,
 				'mediaURL': data.mediaURL,
 			},
-		}))
-		console.log('sent pause command to server')
+		}));
+		console.log('sent pause command to server');
 	}
 }
 
@@ -117,8 +125,8 @@ const sendPlayCommand = async _ => {
 			'data': {
 				'command': 'play',
 			},
-		}))
-		console.log('sent play command to server')
+		}));
+		console.log('sent play command to server');
 	}
 }
 
@@ -133,19 +141,21 @@ const scanCurrentTime = async tabId => {
 	})
 
 	while(true) {
-		chrome.storage.local.get('session', s => {
-			const data = s.session;
-			if(data.roomID) {
-				chrome.tabs.get(tabId, tab => {
-					if(tab.url.match(new RegExp('youtube.com/watch'))) {
-						chrome.tabs.executeScript(
-							tab.id,
-							{code: 'syncCtl.sendPlaybackPosition();'}
-						);
-					}
-				});
-			}
-		})
+		let [roomID, err] = await getStorage(['session', 'roomID']);
+		if(err != undefined) {
+			console.log(err);
+			return;
+		}
+		if(roomID) {
+			chrome.tabs.get(tabId, tab => {
+				if(tab.url.match(new RegExp('youtube.com/watch'))) {
+					chrome.tabs.executeScript(
+						tab.id,
+						{code: 'syncCtl.sendPlaybackPosition();'}
+					);
+				}
+			});
+		}
 		// 2秒に1回に変更
 		await sleep(2000);
 		if(!isScanning) {
@@ -244,7 +254,9 @@ chrome.runtime.onInstalled.addListener(function() {
 					// open時のurlを記録
 					// TODO
 					// 未実装:画面遷移時にはurlを更新する
+					const release = await sMutex.acquire();
 					await setStorage('session', {'mediaURL': msg.data.mediaURL});
+					release();
 
 					return;
 				} else {
@@ -307,10 +319,13 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'playbackPosition') {
 				// content scriptで取得したPBを受けとり、storageに保存
 				console.log(msg.data);
+				const release = await sMutex.acquire();
 				await setStorage('session', {
 					'pbPosition': msg.data.position,
 					'currentTime': msg.data.currentTime,
 				});
+				release();
+
 				appendUserLog(['playback: ' + msg.data.position,]);
 
 				sendPlaybackPosition();
@@ -321,25 +336,35 @@ chrome.runtime.onInstalled.addListener(function() {
 			if(msg.command == 'played') {
 				console.log('EVENT: played');
 				// TODO: mediaURLと一致している場合のみ送る
-				chrome.storage.local.get('session', async data => {
-					const s = data.session;
-					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
-						appendUserLog(['Video is playing.',]);
-						sendPlayCommand();
-					}
-				})
+				const release = await sMutex.acquire();
+				let [mediaURL, err] = await getStorage(['session', 'mediaURL']);
+				release();
+				if(err != undefined) {
+					console.log(err);
+					return;
+				}
+
+				if (isHost && mediaURL && mediaURL == msg.data.mediaURL) {
+					appendUserLog(['Video is playing.',]);
+					sendPlayCommand();
+				}
 				return;
 			}
 			if(msg.command == 'paused') {
 				console.log('EVENT: paused');
 				// TODO: mediaURLと一致している場合のみ送る
-				chrome.storage.local.get('session', async data => {
-					const s = data.session;
-					if (isHost && s.mediaURL && s.mediaURL == msg.data.mediaURL) {
-						appendUserLog(['Video was paused.',]);
-						sendPauseCommand(msg.data);
-					}
-				})
+				const release = await sMutex.acquire();
+				let [mediaURL, err] = await getStorage(['session', 'mediaURL']);
+				release();
+				if(err != undefined) {
+					console.log(err);
+					return;
+				}
+				
+				if (isHost && mediaURL && mediaURL == msg.data.mediaURL) {
+					appendUserLog(['Video was paused.',]);
+					sendPauseCommand(msg.data);
+				}
 				return;
 			}
 			if(msg.command == 'seeked') {
