@@ -32,7 +32,7 @@ Chromeストアで未公開のため、ソースをダウンロードしChrome�
 
 ## How StreamSync works
 
-Host(chrome) -> (data) -> Websockets Server -> (data) -> Client(chrome)
+Host(chrome) -> (data) -> Websocket Server -> (data) -> Client(chrome)
 
 Hostのブラウザは視聴する動画ごとにRoomを作ることができ、ClientのブラウザはRoomに参加することができます。  
 Hostは視聴中の動画の再生地点を定期的にRoomに配信します。Roomに参加しているClientは、配信された再生地点をもとに視聴中の動画をリアルタイムにシークします。  
@@ -42,9 +42,9 @@ Host-Client間はサーバーを経由してWebsocketsで通信します。
 
 Host can open a room and Clients can join it. Host sends playback position data of video or streaming playing in browser to the room. Clients in the same room receive the data and automatically sync the playback position of video or streaming.
 
-Host and Client have each Websockets connection with server as long as they are in the room.
+Host and Client have each Websocket connection with server as long as they are in the room.
 
 ### Related Repository
 
 **[atori74/streamsync-server](https://github.com/atori74/streamsync-server)**  
-Websockets server for streamsync, that communicates with Hosts and Clients
+Websocket server for streamsync, that communicates with Hosts and Clients
