@@ -13,7 +13,8 @@
 	"content_scripts": [
 		{
 			"matches": ["*://www.youtube.com/watch*"],
-			"js": ["youtubeCtl.js"]
+			"js": ["youtubeCtl.js"],
+			"all_frames": true
 		}
 	],
 	"options_ui": {
