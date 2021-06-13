@@ -87,6 +87,8 @@ const renderDefaultView = _ => {
 					'command': 'openRoom',
 					'data': {'mediaURL': tabs[0].url, 'tabId': tabs[0].id}
 				}, undefined);
+			} else {
+				appendLog('Cannot open room for this page.')
 			}
 		});
 	}
