@@ -66,6 +66,19 @@ const PrimeVideoCtl = class {
 		};
 	}
 
+	sendPlaybackPosition() {
+		// すでにpause状態または広告が流れている場合はスキップ
+		if (this.isPaused) {
+			return;
+		}
+		// pauseを検知した場合はpauseコマンドをclientsに送信
+		if (!this.isPaused && this.video.paused) {
+			this.isPaused = true;
+			this.sendMessage('paused');
+		}
+		this.sendMessage('playbackPosition');
+	}
+
 	sendMessage(command) {
 		chrome.runtime.sendMessage({
 			type: 'FROM_PAGE',
