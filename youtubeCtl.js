@@ -173,5 +173,29 @@ var YoutubeSync = class {
 	}
 }
 
-var syncCtl = new YoutubeSync();
+var syncCtl;
+
+const initializeSyncCtl = _ => {
+	if(location.pathname == '/watch') {
+		console.log('syncCtl is initialized.')
+		syncCtl = new YoutubeSync();
+	}
+};
+
+const stopSyncCtl = _ => {
+	if(syncCtl && syncCtl.state == 'OPEN') {
+		console.log('syncCtl is released.')
+		syncCtl.release();
+	}
+}
+
+document.addEventListener('yt-navigate-start', stopSyncCtl)
+document.addEventListener('yt-navigate-finish', initializeSyncCtl);
+
+if(document.body) {
+	initializeSyncCtl();
+} else {
+	document.addEventListener('DOMContentLoaded', initializeSyncCtl);
+}
+
 

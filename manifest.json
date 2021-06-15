@@ -12,9 +12,8 @@
 	},
 	"content_scripts": [
 		{
-			"matches": ["*://www.youtube.com/watch*"],
-			"js": ["youtubeCtl.js"],
-			"all_frames": true
+			"matches": ["*://*.youtube.com/*"],
+			"js": ["youtubeCtl.js"]
 		}
 	],
 	"options_ui": {
