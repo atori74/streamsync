@@ -53,7 +53,7 @@ body {
 }
 
 .room-info {
-	height: 150px;
+	height: 120px;
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
@@ -114,6 +114,27 @@ body {
 	font-size: 1em;
 	padding: 4px;
 }
+
+.offset-control div {
+	display: inline-block;
+	cursor: default;
+}
+
+#offset-value {
+	width: 2em;
+	font-size: 1.8em;
+}
+
+.ui-offset {
+	font-size: 2em;
+	user-select: none;
+	transition: color .3s;
+}
+
+.ui-offset:hover {
+	color: #9EA8B1;
+}
+
 
 .footer {
 	height: 120px;
