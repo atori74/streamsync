@@ -21,12 +21,14 @@ const NetflixCtl = class {
 	initEventListener() {
 		// Arrow Function では定義時点のthisが保存されるのでthisを別名変数にする必要なし
 		this.playedHandler = _ => {
+			console.log("played")
 			if (this.isPaused) {
 				this.isPaused = false;
 				this.sendMessage('played');
 			}
 		};
 		this.pausedHandler = _ => {
+			console.log("paused")
 			return;
 		};
 		this.seekedHandler = _ => {
