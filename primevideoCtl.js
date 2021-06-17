@@ -70,6 +70,9 @@ const PrimeVideoCtl = class {
 	}
 
 	sync(position) {
+		if(this.video.paused) {
+			return;
+		}
 		const delta = this.video.currentTime - position;
 		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
