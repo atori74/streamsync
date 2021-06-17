@@ -129,8 +129,18 @@ let syncCtl;
 console.log("content scripts was loaded");
 
 const initializeSyncCtl = _ => {
-	console.log("syncCtl is initialized")
-	syncCtl = new NetflixCtl();
+	if(/^\/watch/.test(document.location.pathname)) {
+		const wait = setInterval(_ => {
+			if(document.querySelector('video')) {
+				console.log("syncCtl is initialized")
+				syncCtl = new NetflixCtl();
+				clearInterval(wait);
+			}
+		}, 100);
+		setTimeout(_ => {
+			clearInterval(wait);
+		}, 60000);
+	}
 };
 
 const stopSyncCtl = _ => {
@@ -147,16 +157,20 @@ const stopSyncCtl = _ => {
 	(document.head || document.documentElement).appendChild(script);
 })();
 
-if(/^\/watch/.test(document.location.pathname)) {
-	const wait = setInterval(_ => {
-		if(document.querySelector('video')) {
-			initializeSyncCtl();
-			clearInterval(wait);
+let currentHref = document.location.href;
+const watchNavigate = setInterval(_ => {
+	if (currentHref != document.location.href) {
+		currentHref = document.location.href;
+		if(document.location.hostname != 'www.netflix.com') {
+			clearInterval(watchNavigate);
+			return
 		}
-	}, 100);
-	setTimeout(_ => {
-		clearInterval(wait);
-	}, 60000);
-}
+		stopSyncCtl();
+		initializeSyncCtl();
+	}
+}, 100);
 
-window.addEventListener('unload', stopSyncCtl);
+initializeSyncCtl();
+
+
+
