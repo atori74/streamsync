@@ -70,7 +70,7 @@ const PrimeVideoCtl = class {
 	}
 
 	sync(position) {
-		if(this.video.paused) {
+		if(this.video.played.length == 0) {
 			return;
 		}
 		const delta = this.video.currentTime - position;
