@@ -48,15 +48,25 @@ const PrimeVideoCtl = class {
 	}
 
 	seekTo(position) {
-		this.video.pause();
-		this.video.currentTime = position;
-		this.video.play();
+		const isPaused = this.video.paused;
+		if(this.video.paused) {
+			this.video.pause();
+			this.video.currentTime = position;
+			this.video.play();
+		} else {
+			this.video.currentTime = position;
+		}
 	}
 
 	seekAfter(sec) {
-		this.video.pause();
-		this.video.currentTime += sec;
-		this.video.play();
+		const isPaused = this.video.paused;
+		if(this.video.paused) {
+			this.video.pause();
+			this.video.currentTime += sec;
+			this.video.play();
+		} else {
+			this.video.currentTime += sec;
+		}
 	}
 
 	sync(position) {
