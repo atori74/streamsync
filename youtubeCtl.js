@@ -13,6 +13,7 @@ var YoutubeSync = class {
 			}
 		})
 
+		this.initOffset();
 		this.initEventListener();
 
 		// イベントリスナーで監視できないDOMはMutationObserverで
@@ -42,6 +43,22 @@ var YoutubeSync = class {
 		this.observeVideo();
 
 		this.allowedDiff = 0.5;
+	}
+
+	initOffset() {
+		chrome.storage.local.get('session', data => {
+			const offset = data.session.offset;
+			this.offset = offset ? offset : 0;
+		})
+		chrome.storage.onChanged.addListener((changes, areaName) => {
+			if(areaName != 'local' || !changes.session) {
+				return;
+			}
+			const offset = changes.session.newValue.offset;
+			if(offset && offset != this.offset) {
+				this.offset = offset;
+			}
+		})
 	}
 
 	initEventListener() {
@@ -103,6 +120,7 @@ var YoutubeSync = class {
 		if (this.adInterrupting) {
 			return;
 		}
+		position -= this.offset; // offset秒遅らせる
 		const delta = this.video.currentTime - position;
 		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
