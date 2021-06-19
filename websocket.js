@@ -21,6 +21,7 @@ const handleFrame = async (frame) => {
 					'roomID': roomID,
 					'mediaURL': mediaURL,
 					'status': 'client',
+					'offset': 0,
 				}, undefined);
 				release();
 				rerenderPopup('Successfully joined the room.');

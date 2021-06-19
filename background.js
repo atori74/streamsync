@@ -300,6 +300,46 @@ chrome.runtime.onInstalled.addListener(function() {
 
 				return;
 			}
+			if(msg.command == 'addOffset') {
+				let release;
+				release = await sMutex.acquire();
+				let [offset, err] = await getStorage(['session', 'offset']);
+				release();
+				if(err != undefined) {
+					return;
+				}
+				release = await sMutex.acquire();
+				await setStorage('session', {
+					'offset': offset + 1,
+				});
+				release();
+				chrome.runtime.sendMessage({
+					'type': 'FROM_BG',
+					'command': 'reloadOffset',
+				})
+
+				return;
+			}
+			if(msg.command == 'reduceOffset') {
+				let release;
+				release = await sMutex.acquire();
+				let [offset, err] = await getStorage(['session', 'offset']);
+				release();
+				if(err != undefined) {
+					return;
+				}
+				release = await sMutex.acquire();
+				await setStorage('session', {
+					'offset': offset - 1,
+				});
+				release();
+				chrome.runtime.sendMessage({
+					'type': 'FROM_BG',
+					'command': 'reloadOffset',
+				})
+
+				return;
+			}
 		}
 		if(msg.type == 'FROM_PAGE') {
 			if(msg.command == 'playbackPosition') {

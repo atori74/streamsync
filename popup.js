@@ -62,8 +62,23 @@ const renderClientView = _ => {
 		})
 	}
 
+	document.getElementById('addOffset').onclick = elem => {
+		chrome.runtime.sendMessage({
+			'type': 'FROM_ACTION',
+			'command': 'addOffset',
+		})
+	}
+
+	document.getElementById('reduceOffset').onclick = elem => {
+		chrome.runtime.sendMessage({
+			'type': 'FROM_ACTION',
+			'command': 'reduceOffset',
+		})
+	}
+
 	renderRoomInfo();
 
+	reloadOffset();
 	reloadLogs();
 }
 
@@ -139,7 +154,19 @@ const appendLog = msg => {
 	if(doScroll) {
 		logDiv.scrollTop = logDiv.scrollHeight - logDiv.clientHeight;
 	}
-	
+}
+
+const reloadOffset = _ => {
+	chrome.storage.local.get('session', s => {
+		const data = s.session;
+		if(!data.offset || data.offset == 0) {
+			document.getElementById('offset-value').textContent = '0';
+		} else if (data.offset > 0) {
+			document.getElementById('offset-value').textContent = '+' + data.offset;
+		} else if (data.offset < 0) {
+			document.getElementById('offset-value').textContent = '' + data.offset;
+		}
+	})
 }
 
 // storageに保存されているuserLogをログウィンドウに再描画する
@@ -177,6 +204,9 @@ chrome.runtime.onMessage.addListener(msg => {
 				for(const log of msg.data.logs) {
 					appendLog(log);
 				}
+				break;
+			case 'reloadOffset':
+				reloadOffset();
 				break;
 		}
 	}
