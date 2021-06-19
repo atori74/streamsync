@@ -4,6 +4,7 @@ const PrimeVideoCtl = class {
 		this.video = document.querySelector('.webPlayerElement video');
 		this.isPaused = false;
 
+		this.initOffset();
 		this.initEventListener();
 
 		this.allowedDiff = 0.5;
@@ -33,6 +34,22 @@ const PrimeVideoCtl = class {
 		this.video.removeEventListener('play', this.playedHandler);
 		this.video.removeEventListener('pause', this.pausedHandler);
 		this.video.removeEventListener('seeked', this.seekedHandler);
+	}
+
+	initOffset() {
+		chrome.storage.local.get('session', data => {
+			const offset = data.session.offset;
+			this.offset = offset ? offset : 0;
+		})
+		chrome.storage.onChanged.addListener((changes, areaName) => {
+			if(areaName != 'local' || !changes.session) {
+				return;
+			}
+			const offset = changes.session.newValue.offset;
+			if(offset && offset != this.offset) {
+				this.offset = offset;
+			}
+		})
 	}
 
 	getDuration() {
@@ -73,6 +90,7 @@ const PrimeVideoCtl = class {
 		if(this.video.played.length == 0) {
 			return;
 		}
+		position -= this.offset; // offset秒遅らせる
 		const delta = this.video.currentTime - position;
 		if(delta > this.allowedDiff || delta < -1 * this.allowedDiff) {
 			this.seekTo(position);
