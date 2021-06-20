@@ -5,7 +5,10 @@
   	    <link href="./popup.css" rel="stylesheet">
     </head>
     <body>
-		<div class="popup-header"><div class="logo">StreamSync</div></div>
+		<div class="popup-header">
+			<div class="logo-icon"><img src="static/icon48.png"></div>
+			<div class="logo-title">Streamsync</div>
+		</div>
 		<div id="main" class="main-container">
 		</div>
 		<div class="footer">
@@ -49,6 +52,11 @@
 					<div class="ui-info-label">mediaURL</div>
 					<div id="mediaURL" class="ui-info-value"></div>
 				</div>
+			</div>
+			<div class="offset-control">
+				<div class="ui-button-outer"><div id="reduceOffset" class="ui-offset">&lt;</div></div>
+				<div id="offset-value">0</div>
+				<div class="ui-button-outer"><div id="addOffset" class="ui-offset">&gt;</div></div>
 			</div>
 			<div class="ui-button-outer"><a id="leaveRoom" href="#" class="ui-button">ルームを退出</a></div>
 		</template>
