@@ -22,18 +22,21 @@ body {
 .popup-header {
 	color: #61DAFB;
 	background-color: #20232A;
-	text-align: center;
 	height: 50px;
-	position: relative;
+	width: 100%;
+	text-align: center;
 }
 
-.logo {
+.logo-icon {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.logo-title {
+	font-family: "Ubuntu";
+	display: inline-block;
+	vertical-align: middle;
 	font-size: 1.8em;
-	top: 50%;
-	left: 50%;
-	transform: translateY(-50%) translateX(-50%);
-	-webkit-transform: translateY(-50%) translateX(-50%);
-	position: absolute;
 }
 
 .main-container {
