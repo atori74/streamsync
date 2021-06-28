@@ -1,17 +1,19 @@
 # streamsync
 
-StreamSyncはブラウザ間でストリーミング動画の再生タイミングを同期するためのGoogle Chrome拡張機能です。  
-※現在のところYoutubeのみに対応。将来的にNetflix, Prime videoなど...
+Streamsyncはブラウザ間でストリーミング動画の再生タイミングを同期するためのGoogle Chrome拡張機能です。  
 
-StreamSync is a google chrome extension that enables to sync playback position between Host and Client (different browsers).  
-※Now Youtube is supported. It is considered to support other platforms such as Netflix and Prime video in future.
+Streamsync is a google chrome extension that enables to sync playback position between Host and Client (different browsers).  
 
-**現在開発中・・・**  
-**This have not been released yet. Now developing prototype.**
+## 対応サービス
+
+- Youtube
+- Amazon Prime Video
 
 ## How to install
 
-Chromeストアで未公開のため、ソースをダウンロードしChromeのデベロッパーモードで拡張機能をインストールしてください。
+Chromeウェブストアから拡張機能をインストール
+
+もしくは、ソースをダウンロードしChromeのデベロッパーモードで拡張機能をインストールしてください。
 
 参考手順：[https://support.google.com/chrome/a/answer/2714278?hl=ja](https://support.google.com/chrome/a/answer/2714278?hl=ja)
 
@@ -30,7 +32,14 @@ Chromeストアで未公開のため、ソースをダウンロードしChrome�
 3. Hostの再生地点と同期されるように、再生、停止、シークなどの操作が自動で行われる
 4. 同期を終了するときは、「ルームを退出」をクリックする
 
-## How StreamSync works
+#### タイミングオフセットの調整
+
+意図してホストと再生タイミングをずらしたい場合は、クライアント側のポップアップメニューでオフセット（秒）を調整することができます。  
+プラスのオフセットはクライアント側のタイミングを遅らせ、マイナスのオフセットは逆に早めます。  
+
+ex. ホストとの通話ラグが１秒ある場合、オフセットを+1に設定する。
+
+## How streamsync works
 
 Host(chrome) -> (data) -> Websocket Server -> (data) -> Client(chrome)
 
