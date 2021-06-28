@@ -8,6 +8,7 @@ Streamsync is a google chrome extension that enables to sync playback position b
 
 - Youtube
 - Amazon Prime Video
+- Netflix
 
 ## How to install
 
