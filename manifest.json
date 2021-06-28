@@ -7,7 +7,12 @@
 		"48": "static/icon48.png",
 		"128": "static/icon128.png"
 	},
-	"permissions": ["storage", "tabs", "http://*/*", "https://*/*"],
+	"permissions": [
+		"storage",
+		"tabs",
+		"*://*.youtube.com/*",
+		"*://*.amazon.co.jp/*"
+	],
 	"background": {
 		"page": "background.html",
 		"persistent": true
