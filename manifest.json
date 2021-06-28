@@ -23,6 +23,10 @@
 		{
 			"matches": ["*://*.netflix.com/*"],
 			"js": ["netflixCtl.js"]
+		},
+		{
+			"matches": ["*://*.amazon.co.jp/gp/video/*"],
+			"js": ["primevideoCtl.js"]
 		}
 	],
 	"options_ui": {

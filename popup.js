@@ -96,7 +96,7 @@ const renderDefaultView = _ => {
 
 	document.getElementById('openRoom').onclick = elem => {
 		chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-			if(tabs[0].url.match(new RegExp('youtube.com/watch'|'netflix.com/watch'))) {
+			if(tabs[0].url.match(new RegExp('youtube.com/watch|amazon.co.jp/gp/video/detail'|'netflix.com/watch'))) {
 				chrome.runtime.sendMessage({
 					'type': 'FROM_ACTION',
 					'command': 'openRoom',

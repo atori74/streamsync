@@ -148,7 +148,7 @@ const scanCurrentTime = async tabId => {
 		}
 		if(roomID) {
 			chrome.tabs.get(tabId, tab => {
-				if(tab.url.match(new RegExp('youtube.com/watch'|'netflix.com/watch'))) {
+				if(tab.url.match(new RegExp('youtube.com/watch|amazon.co.jp/gp/video/detail'|'netflix.com/watch'))) {
 					chrome.tabs.executeScript(
 						tab.id,
 						{code: 'syncCtl.sendPlaybackPosition();'}
