@@ -1,13 +1,32 @@
 const PrimeVideoCtl = class {
 	constructor() {
 		this.state = 'OPEN';
-		this.video = document.querySelector('.webPlayerElement video');
+		this.video = document.querySelector('.webPlayerElement video[src]');
 		this.isPaused = false;
 
 		this.initOffset();
 		this.initEventListener();
 
+		this.getTitleData();
+		if(this.isSeason()) {
+			this.getEpisodeData();
+			this.episodeId = this.currentEpisodeId();
+			const checkEpisode = setInterval(_ => {
+				const newer = this.currentEpisodeId();
+				if(newer && this.episodeId != newer) {
+					clearInterval(checkEpisode);
+					this.sendMessage('episodeChange')
+					stopSyncCtl();
+					initializeSyncCtl();
+				}
+			}, 100);
+		}
+
 		this.allowedDiff = 0.5;
+	}
+
+	isSeason() {
+		return this.titleData[Object.keys(this.titleData)[0]].titleType == "season";
 	}
 
 	initEventListener() {
@@ -97,6 +116,62 @@ const PrimeVideoCtl = class {
 		};
 	}
 
+	getTitleData() {
+		const elems = document.querySelectorAll('script[type="text/template"]');
+		const parsed = JSON.parse(elems[elems.length-1].innerText);
+		this.titleData = parsed.props.state.detail.btfMoreDetails;
+	}
+
+	getEpisodeData() {
+		if(!this.isSeason()) {
+			return;
+		}
+		const elems = document.querySelectorAll('script[type="text/template"]');
+		const parsed = JSON.parse(elems[elems.length-1].innerText);
+		this.episodesData = parsed.props.state.detail.detail;
+	}
+
+	currentEpisodeId() {
+		if(!this.isSeason()) {
+			return;
+		}
+		if(!this.isFullscreen()) {
+			return undefined;
+		}
+		const titleElem = document.querySelector('div.contentTitlePanel');
+		for(const k of Object.keys(this.episodesData)) {
+			if(this.episodesData[k].parentTitle == titleElem.querySelector('.title').innerText
+				&& titleElem.querySelector('.subtitle').innerText.includes(this.episodesData[k].title)) {
+				return `#av-ep-episodes-${this.episodesData[k].episodeNumber - 1}`;
+			}
+		}
+		return undefined;
+	}
+
+	changeEpisode(episodeId) {
+		if(!this.isSeason()) {
+			return;
+		}
+		if(this.isFullscreen()) {
+			this.closePlayer();
+		}
+		const epi = document.querySelector(episodeId)
+		if (!epi) {
+			return;
+		}
+		epi.querySelector('div.dv-episode-playback-title a').click();
+		stopSyncCtl();
+		initializeSyncCtl();
+	}
+
+	isFullscreen() {
+		return document.querySelector('#dv-web-player').classList.contains('dv-player-fullscreen');
+	}
+
+	closePlayer() {
+		document.querySelector('.closeButtonWrapper .imageButton').click();
+	}
+
 	sendPlaybackPosition() {
 		// すでにpause状態または広告が流れている場合はスキップ
 		if (this.isPaused) {
@@ -118,6 +193,7 @@ const PrimeVideoCtl = class {
 				position: this.video.currentTime,
 				currentTime: (new Date()).toISOString(),
 				mediaURL: document.URL,
+				episodeId: this.episodeId,
 			},
 		}, undefined);
 	}

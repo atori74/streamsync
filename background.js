@@ -130,6 +130,25 @@ const sendPlayCommand = async _ => {
 	}
 }
 
+const sendEpisodeChangeCommand = async data => {
+	if(conn.readyState == WebSocket.CLOSED) {
+		return;
+	}
+	if(conn.readyState == WebSocket.OPEN) {
+		conn.send(JSON.stringify({
+			'from': 'host',
+			'type': 'command',
+			'data': {
+				'command': 'episodeChange',
+				'position': data.position,
+				'mediaURL': data.mediaURL,
+				'episodeId': data.episodeId,
+			},
+		}));
+		console.log('sent episodeChange command to server');
+	}
+}
+
 const scanCurrentTime = async tabId => {
 	chrome.tabs.onRemoved.addListener((id, removeInfo) => {
 		if(tabId == id) {
@@ -399,6 +418,23 @@ chrome.runtime.onInstalled.addListener(function() {
 			}
 			if(msg.command == 'adInterrupted') {
 				console.log('EVENT: adInterrupted');
+				return;
+			}
+			if(msg.command == 'episodeChange') {
+				console.log('EVENT: episodeChange');
+				// TODO: mediaURLと一致している場合のみ送る
+				const release = await sMutex.acquire();
+				let [mediaURL, err] = await getStorage(['session', 'mediaURL']);
+				release();
+				if(err != undefined) {
+					console.log(err);
+					return;
+				}
+
+				if (isHost && mediaURL && mediaURL == msg.data.mediaURL) {
+					appendUserLog(['Episode changed.',]);
+					sendEpisodeChangeCommand(msg.data);
+				}
 				return;
 			}
 		}
